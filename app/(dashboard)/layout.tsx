@@ -1,0 +1,160 @@
+"use client";
+
+import { AvatarImage, AvatarFallback, Avatar } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { useSidebarToggle } from "@/stores/sidebarToggle";
+import {
+  PanelLeft,
+  Search,
+  Bell,
+  Menu,
+  Home,
+  Cuboid,
+  ScrollText,
+} from "lucide-react";
+import MobileSidebar from "./components/MobileSidebar";
+import { useMobileSidebarToggle } from "@/stores/mobileSidebarToggle";
+import { NavItem, Navigation } from "./components/Navigation";
+import Sidebar from "./components/Sidebar";
+import { SessionProvider } from "next-auth/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "sonner";
+import { Bounce, ToastContainer } from "react-toastify";
+
+const menuConfig: NavItem[] = [
+  {
+    label: "Home",
+    icon: Home,
+    href: "/home",
+  },
+  {
+    label: "Manjemen Produk",
+    icon: Cuboid,
+    children: [
+      { label: "Daftar Produk", href: "/products" },
+      { label: "Stok & Harga", href: "/products/stocks" },
+      { label: "Cetak harga", href: "/products/print" },
+    ],
+  },
+  {
+    label: "Laporan",
+    icon: ScrollText,
+    children: [
+      { label: "Daftar Produk", href: "/reports" },
+      { label: "Stok & Harga", href: "/reports/stocks" },
+      { label: "Cetak harga", href: "/reports/print" },
+    ],
+  },
+  {
+    label: "Settings",
+    icon: ScrollText,
+    children: [
+      { label: "General", href: "/settings" },
+      { label: "Security", href: "/settings/security" },
+    ],
+  },
+];
+
+const queryClient = new QueryClient();
+
+const Layout = ({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) => {
+  const { toggleCollapse } = useSidebarToggle();
+  const { toggleMobileOpen } = useMobileSidebarToggle();
+
+  return (
+    <SessionProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <div className="flex min-h-screen bg-gray-50 text-gray-900">
+            <Sidebar>
+              <Navigation items={menuConfig} />
+            </Sidebar>
+            <MobileSidebar>
+              <Navigation items={menuConfig} />
+            </MobileSidebar>
+
+            <div className="flex-1 flex flex-col">
+              {/* Header */}
+              <header className="flex items-center justify-between border-b bg-white/80 backdrop-blur px-4 py-3 md:px-6">
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="md:hidden"
+                    onClick={() => toggleMobileOpen()}
+                  >
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                  {/* Desktop Toggle */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="hidden md:flex"
+                    onClick={() => toggleCollapse()}
+                  >
+                    <PanelLeft className="h-5 w-5" />
+                  </Button>
+
+                  <div className="relative hidden sm:block">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input placeholder="Search..." className="pl-9 w-64" />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <Button variant="ghost" size="icon">
+                    <Bell className="h-5 w-5" />
+                  </Button>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Avatar className="cursor-pointer">
+                        <AvatarImage src="https://github.com/shadcn.png" />
+                        <AvatarFallback>JD</AvatarFallback>
+                      </Avatar>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem>Profile</DropdownMenuItem>
+                      <DropdownMenuItem>Settings</DropdownMenuItem>
+                      <DropdownMenuItem>Logout</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </header>
+
+              {/* Main Content */}
+              <main className="flex-1 p-4 md:p-6 space-y-6">{children}</main>
+            </div>
+          </div>
+          <ToastContainer
+            position="top-right"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick={false}
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="light"
+            transition={Bounce}
+          />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </SessionProvider>
+  );
+};
+
+export default Layout;
