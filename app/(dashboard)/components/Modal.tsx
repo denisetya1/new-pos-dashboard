@@ -13,12 +13,10 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
-import { TooltipDialogBtn } from "./TooltipDialogBtn";
 import { Button } from "@/components/ui/button";
 
 type ChildProps = {
-  onSuccess?: () => void;
-  onCancel?: () => void;
+  closeModal?: () => void;
 };
 
 const Modal = ({
@@ -36,8 +34,7 @@ const Modal = ({
 
   const childWithProps = isValidElement(children)
     ? cloneElement(children as React.ReactElement<ChildProps>, {
-        onSuccess: () => setOpen(false),
-        onCancel: () => setOpen(false),
+        closeModal: () => setOpen(false),
       })
     : children;
 
@@ -54,7 +51,7 @@ const Modal = ({
         </Tooltip>
       ) : (
         <DialogTrigger asChild>
-          <Button variant="outline">Open Dialog</Button>
+          <Button variant="outline">{trigger}</Button>
         </DialogTrigger>
       )}
 

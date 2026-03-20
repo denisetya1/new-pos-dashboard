@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import queryString from "query-string";
 import { useQuery } from "@tanstack/react-query";
 import { Brand, Category, Outlet } from "@/generated/prisma/client";
@@ -33,6 +33,7 @@ const SearchForm = ({
   pageURL?: string | undefined;
 }) => {
   const router = useRouter();
+  const pathname = usePathname();
   const [categoryId, setCategoryId] = useState(selectedCategory);
   const [brandId, setBrandId] = useState(selectedBrand);
   const [search, setSearch] = useState(searchProduct || "");
@@ -46,7 +47,7 @@ const SearchForm = ({
   });
 
   const { data: categories } = useQuery({
-    queryKey: ["brands"],
+    queryKey: ["categories"],
     queryFn: () => {
       return fetch("/api/dashboard/filters/categories").then((res) =>
         res.json(),
@@ -55,27 +56,42 @@ const SearchForm = ({
   });
 
   const { data: outlets } = useQuery({
-    queryKey: ["brands"],
+    queryKey: ["outlets"],
     queryFn: () => {
       return fetch("/api/dashboard/filters/outlets").then((res) => res.json());
     },
   });
 
-  useEffect(() => {
-    const query = {
-      categoryId,
-      brandId,
-      outletId,
-      search,
-    };
+  const handleSearch = () => {
+    const qs = queryString.stringify(
+      {
+        brandId,
+        categoryId,
+        outletId,
+        search,
+      },
+      {
+        skipEmptyString: true,
+        skipNull: true,
+      },
+    );
 
-    const qs = queryString.stringify(query, {
-      skipEmptyString: true,
-      skipNull: true,
-    });
+    router.push(`${pathname}?${qs}`);
+  };
 
-    // router.push(`${pageURL}?${qs}`);
-  }, [categoryId, brandId, search, outletId, pageURL, router]);
+  const handleReset = () => {
+    setBrandId("");
+    setCategoryId("");
+    setOutletId("");
+    setSearch("");
+    router.push(`${pathname}`);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
 
   return (
     <div className="sm:flex flex-row justify-start gap-5 items-center mb-8">
@@ -93,13 +109,18 @@ const SearchForm = ({
           <Select
             onValueChange={(value) => setOutletId(value)}
             value={outletId}
+            name="outletId"
           >
-            <SelectTrigger className="w-full max-w-48 bg-white">
-              <SelectValue placeholder="Pilih Kategori" />
+            <SelectTrigger
+              value={outletId}
+              className="w-full max-w-48 bg-white"
+              onReset={() => setOutletId("")}
+            >
+              <SelectValue placeholder="Pilih Outlet" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectLabel>Kategori</SelectLabel>
+                <SelectLabel>Outlet</SelectLabel>
                 {outlets &&
                   outlets.map((outlet: Outlet) => (
                     <SelectItem
@@ -130,8 +151,13 @@ const SearchForm = ({
         <Select
           onValueChange={(value) => setCategoryId(value)}
           value={categoryId}
+          name="categoryId"
         >
-          <SelectTrigger className="w-full max-w-48 bg-white">
+          <SelectTrigger
+            value={categoryId}
+            className="w-full max-w-48 bg-white"
+            onReset={() => setCategoryId("")}
+          >
             <SelectValue placeholder="Pilih Kategori" />
           </SelectTrigger>
           <SelectContent>
@@ -161,9 +187,17 @@ const SearchForm = ({
             Brand
           </Label>
         </div>
-        <Select onValueChange={(value) => setBrandId(value)} value={brandId}>
-          <SelectTrigger className="w-full max-w-48 bg-white">
-            <SelectValue placeholder="Pilih Kategori" />
+        <Select
+          onValueChange={(value) => setBrandId(value)}
+          value={brandId}
+          name="brandId"
+        >
+          <SelectTrigger
+            value={brandId}
+            onReset={() => setBrandId("")}
+            className="w-full max-w-48 bg-white"
+          >
+            <SelectValue placeholder="Pilih Brand" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
@@ -199,18 +233,21 @@ const SearchForm = ({
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             setSearch(e.target.value)
           }
+          onKeyDown={handleKeyDown}
           type="text"
           placeholder="Cari berdasarkan nama produk/barcode/sku"
         />
       </div>
       <div className="flex gap-1 mt-4">
         <div>
-          <Button>
+          <Button onClick={handleSearch}>
             <Search /> Cari
           </Button>
         </div>
         <div>
-          <Button variant="outline">Reset</Button>
+          <Button variant="outline" onClick={handleReset}>
+            Reset
+          </Button>
         </div>
       </div>
     </div>

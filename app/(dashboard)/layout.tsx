@@ -26,7 +26,6 @@ import Sidebar from "./components/Sidebar";
 import { SessionProvider } from "next-auth/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Toaster } from "sonner";
 import { Bounce, ToastContainer } from "react-toastify";
 
 const menuConfig: NavItem[] = [

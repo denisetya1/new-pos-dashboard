@@ -15,6 +15,8 @@ import AddEditProductModal from "./components/AddEditProductModal";
 import LoadingContent from "../components/LoadingContent";
 import DeleteProductModal from "./components/DeleteProductModal";
 import { Prisma } from "@/generated/prisma/client";
+import { Button } from "@/components/ui/button";
+import TablePagination from "../components/TablePagination";
 
 type Product = Prisma.ProductGetPayload<{
   include: { brand: true; category: true };
@@ -28,12 +30,12 @@ const ProductsPage = () => {
   const { outletId, categoryId, brandId, search, sort, page } = params;
 
   const qs = queryString.stringify(params);
-  console.log("qs", qs);
 
   const {
     data: productsData,
     isError,
     isPending,
+    refetch,
   } = useQuery({
     queryKey: ["products", qs],
     queryFn: () => {
@@ -53,12 +55,22 @@ const ProductsPage = () => {
   return (
     <div>
       <h2 className="font-bold text-2xl capitalize mb-10">Manajemen Produk</h2>
-      <div>
+      <div className="my-10 text-right">
+        <AddEditProductModal onSuccess={refetch} />
+      </div>
+      <div className="mb-10">
         <SearchForm
           selectedCategory={categoryId}
           selectedBrand={brandId}
           searchProduct={search}
           selectedOutlet={outletId}
+        />
+      </div>
+      <div className="mb-2">
+        <TablePagination
+          currentPage={currentPage}
+          limit={limit}
+          totalPages={Math.floor(totalRow / limit)}
         />
       </div>
       <Card className="p-0">
@@ -147,7 +159,11 @@ const ProductsPage = () => {
                   </td>
                   <td className="px-6 py-3">
                     <div className="flex flex-row gap-3">
-                      <AddEditProductModal />
+                      <AddEditProductModal
+                        product={product}
+                        onSuccess={refetch}
+                      />
+
                       <DeleteProductModal
                         deletedProductName={product.name}
                         productId={product.id.toString()}
@@ -167,6 +183,14 @@ const ProductsPage = () => {
           </div>
         )}
       </Card>
+
+      <div className="mt-2 mb-10">
+        <TablePagination
+          currentPage={currentPage}
+          limit={limit}
+          totalPages={Math.floor(totalRow / limit)}
+        />
+      </div>
     </div>
   );
 };
