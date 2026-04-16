@@ -1,8 +1,7 @@
 "use client";
 import { Card } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
-import SortableHeader from "../components/SortableHeader";
-import SearchForm from "./components/SearchForm";
+import SortableHeader from "../../components/SortableHeader";
+import SearchForm from "../components/SearchForm";
 import { useSearchParams } from "next/navigation";
 import queryString from "query-string";
 import { IoPricetagOutline } from "react-icons/io5";
@@ -11,20 +10,20 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import AddEditProductModal from "./components/AddEditProductModal";
-import LoadingContent from "../components/LoadingContent";
-import DeleteProductModal from "./components/DeleteProductModal";
+import LoadingContent from "../../components/LoadingContent";
+import DeleteProductModal from "../components/DeleteProductModal";
 import { Prisma } from "@/generated/prisma/client";
-import TablePagination from "../components/TablePagination";
+import TablePagination from "../../components/TablePagination";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
-import { useGetProducts } from "@/hooks/useProducts";
+import { useGetProductStocks } from "@/hooks/useProductStocks";
+import StockMovementModal from "../components/StockMovementModal";
 
-type Product = Prisma.ProductGetPayload<{
-  include: { brand: true; category: true };
+type ProductStock = Prisma.ProductGetPayload<{
+  include: { brand: true; category: true; stocks: true };
 }>;
 
-const ProductsPage = () => {
+const PriceStockPage = () => {
   const searchParams = useSearchParams();
   const params = Object.fromEntries(searchParams.entries());
 
@@ -38,12 +37,12 @@ const ProductsPage = () => {
     isError,
     isPending,
     refetch,
-  } = useGetProducts(qs);
+  } = useGetProductStocks(qs);
 
   const {
     contents: products,
     totalRow,
-  }: { contents: Product[]; totalRow: number } = productsData?.data || {};
+  }: { contents: ProductStock[]; totalRow: number } = productsData?.data || {};
 
   const currentPage = parseInt(page) || 1;
 
@@ -58,10 +57,10 @@ const ProductsPage = () => {
 
   return (
     <div>
-      <h2 className="font-bold text-2xl capitalize mb-10">Manajemen Produk</h2>
-      <div className="my-10 text-right">
-        <AddEditProductModal onSuccess={refetch} />
-      </div>
+      <h2 className="font-bold text-2xl capitalize mb-10">
+        Daftar Harga & Stok
+      </h2>
+
       <div className="mb-10">
         <SearchForm
           selectedCategory={categoryId}
@@ -118,7 +117,7 @@ const ProductsPage = () => {
           </thead>
           <tbody className="divide-y">
             {products &&
-              products.map((product: Product, index: number) => (
+              products.map((product: ProductStock, index: number) => (
                 <tr
                   key={product.id}
                   className="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700"
@@ -163,9 +162,10 @@ const ProductsPage = () => {
                   </td>
                   <td className="px-6 py-3">
                     <div className="flex flex-row gap-3">
-                      <AddEditProductModal
+                      <StockMovementModal
                         product={product}
-                        onSuccess={refetch}
+                        direction="IN"
+                        onSuccess={() => {}}
                       />
 
                       <DeleteProductModal
@@ -199,4 +199,4 @@ const ProductsPage = () => {
   );
 };
 
-export default ProductsPage;
+export default PriceStockPage;

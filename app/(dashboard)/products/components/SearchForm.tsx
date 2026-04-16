@@ -18,6 +18,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
+import { useGetBrands } from "@/hooks/useBrands";
+import { useGetCategories } from "@/hooks/useCategories";
+import { useGetOutlets } from "@/hooks/useOutlets";
 
 const SearchForm = ({
   selectedCategory,
@@ -39,28 +42,9 @@ const SearchForm = ({
   const [search, setSearch] = useState(searchProduct || "");
   const [outletId, setOutletId] = useState(selectedOutlet);
 
-  const { data: brands } = useQuery({
-    queryKey: ["brands"],
-    queryFn: () => {
-      return fetch("/api/dashboard/filters/brand").then((res) => res.json());
-    },
-  });
-
-  const { data: categories } = useQuery({
-    queryKey: ["categories"],
-    queryFn: () => {
-      return fetch("/api/dashboard/filters/categories").then((res) =>
-        res.json(),
-      );
-    },
-  });
-
-  const { data: outlets } = useQuery({
-    queryKey: ["outlets"],
-    queryFn: () => {
-      return fetch("/api/dashboard/filters/outlets").then((res) => res.json());
-    },
-  });
+  const { data: brands } = useGetBrands();
+  const { data: categories } = useGetCategories();
+  const { data: outlets } = useGetOutlets();
 
   const handleSearch = () => {
     const qs = queryString.stringify(

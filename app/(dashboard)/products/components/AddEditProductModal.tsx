@@ -27,9 +27,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Modal from "../../components/Modal";
 import { ProductFormValues, productSchema } from "@/app/schemas/productSchema";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Product, Brand, Category } from "@/generated/prisma/client";
 import { HiOutlinePencil } from "react-icons/hi";
+import { useGetCategories } from "@/hooks/useCategories";
+import { useGetBrands } from "@/hooks/useBrands";
 
 type Props = {
   product?: Product | null;
@@ -46,18 +48,8 @@ const AddEditProductForm = ({
 }: Props) => {
   const queryClient = useQueryClient();
 
-  // Fetch categories and brands
-  const { data: categories } = useQuery({
-    queryKey: ["categories"],
-    queryFn: () =>
-      fetch("/api/dashboard/filters/categories").then((res) => res.json()),
-  });
-
-  const { data: brands } = useQuery({
-    queryKey: ["brands"],
-    queryFn: () =>
-      fetch("/api/dashboard/filters/brand").then((res) => res.json()),
-  });
+  const { data: categories } = useGetCategories();
+  const { data: brands } = useGetBrands();
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
