@@ -1,10 +1,26 @@
-import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
+import { DirectionEnum } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
+import { buildResponse } from "@/lib/response";
+import { NextRequest } from "next/server";
 
 export const GET = async (req: NextRequest) => {
+  const searchParams = req.nextUrl.searchParams;
+  const session = await auth();
+  const direction = searchParams.get("direction") || "IN";
+
   const categories = await prisma.moveType.findMany({
     where: {
-      storeId: 1,
+      OR: [
+        {
+          storeId: Number(session?.user.storeId),
+        },
+        {
+          storeId: 0,
+        },
+      ],
+      direction: direction as DirectionEnum,
+      isActive: true,
     },
     orderBy: {
       name: "asc",
@@ -15,5 +31,5 @@ export const GET = async (req: NextRequest) => {
     },
   });
 
-  return NextResponse.json(categories);
+  return buildResponse(categories);
 };

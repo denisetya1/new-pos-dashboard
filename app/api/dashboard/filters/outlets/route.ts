@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { buildResponse } from "@/lib/response";
 
-export const GET = async (req: NextRequest) => {
+export const GET = async () => {
   const outlets = await prisma.outlet.findMany({
     where: {
       storeId: 1,
+      isActive: true,
     },
     orderBy: {
       name: "asc",
@@ -15,5 +16,5 @@ export const GET = async (req: NextRequest) => {
     },
   });
 
-  return NextResponse.json(outlets);
+  return buildResponse(outlets);
 };

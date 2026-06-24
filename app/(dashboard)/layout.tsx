@@ -8,7 +8,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { useSidebarToggle } from "@/stores/sidebarToggle";
 import {
   PanelLeft,
@@ -27,6 +26,9 @@ import { SessionProvider } from "next-auth/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Bounce, ToastContainer } from "react-toastify";
+import OutletInfo from "./components/OutletInfo";
+import { useState } from "react";
+import { Spinner } from "@/components/ui/spinner";
 
 const menuConfig: NavItem[] = [
   {
@@ -47,9 +49,10 @@ const menuConfig: NavItem[] = [
     label: "Laporan",
     icon: ScrollText,
     children: [
-      { label: "Daftar Produk", href: "/reports" },
-      { label: "Stok & Harga", href: "/reports/stocks" },
-      { label: "Cetak harga", href: "/reports/print" },
+      { label: "Penjualan Offline", href: "/reports/sales/offline" },
+      { label: "Penjualan Online", href: "/reports/sales/online" },
+      { label: "Barang Terjual", href: "/reports/products/sold" },
+      { label: "Perpindahan Stok", href: "/reports/stocks/movement" },
     ],
   },
   {
@@ -69,6 +72,7 @@ const Layout = ({
 }: Readonly<{
   children: React.ReactNode;
 }>) => {
+  const [isLoading, setIsLoading] = useState(true);
   const { toggleCollapse } = useSidebarToggle();
   const { toggleMobileOpen } = useMobileSidebarToggle();
 
@@ -77,64 +81,78 @@ const Layout = ({
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <div className="flex min-h-screen bg-gray-50 text-gray-900">
-            <Sidebar>
-              <Navigation items={menuConfig} />
-            </Sidebar>
-            <MobileSidebar>
-              <Navigation items={menuConfig} />
-            </MobileSidebar>
+            {!isLoading && (
+              <>
+                <Sidebar>
+                  <Navigation items={menuConfig} />
+                </Sidebar>
+                <MobileSidebar>
+                  <Navigation items={menuConfig} />
+                </MobileSidebar>
+              </>
+            )}
 
             <div className="flex-1 flex flex-col">
-              {/* Header */}
-              <header className="flex items-center justify-between border-b bg-white/80 backdrop-blur px-4 py-3 md:px-6">
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="md:hidden"
-                    onClick={() => toggleMobileOpen()}
-                  >
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                  {/* Desktop Toggle */}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="hidden md:flex"
-                    onClick={() => toggleCollapse()}
-                  >
-                    <PanelLeft className="h-5 w-5" />
-                  </Button>
+              <>
+                <header className="flex items-center justify-between border-b bg-white/80 backdrop-blur px-4 py-3 md:px-6">
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="md:hidden"
+                      onClick={() => toggleMobileOpen()}
+                    >
+                      <Menu className="h-5 w-5" />
+                    </Button>
+                    {/* Desktop Toggle */}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="hidden md:flex"
+                      onClick={() => toggleCollapse()}
+                    >
+                      <PanelLeft className="h-5 w-5" />
+                    </Button>
 
-                  <div className="relative hidden sm:block">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input placeholder="Search..." className="pl-9 w-64" />
+                    <OutletInfo onFinishLoading={() => setIsLoading(false)} />
                   </div>
-                </div>
 
-                <div className="flex items-center gap-4">
-                  <Button variant="ghost" size="icon">
-                    <Bell className="h-5 w-5" />
-                  </Button>
+                  <div className="flex items-center gap-4">
+                    <Button variant="ghost" size="icon">
+                      <Bell className="h-5 w-5" />
+                    </Button>
 
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Avatar className="cursor-pointer">
-                        <AvatarImage src="https://github.com/shadcn.png" />
-                        <AvatarFallback>JD</AvatarFallback>
-                      </Avatar>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>Profile</DropdownMenuItem>
-                      <DropdownMenuItem>Settings</DropdownMenuItem>
-                      <DropdownMenuItem>Logout</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </header>
-
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Avatar className="cursor-pointer">
+                          <AvatarImage src="https://github.com/shadcn.png" />
+                          <AvatarFallback>JD</AvatarFallback>
+                        </Avatar>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem>Profile</DropdownMenuItem>
+                        <DropdownMenuItem>Settings</DropdownMenuItem>
+                        <DropdownMenuItem>Logout</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </header>
+              </>
               {/* Main Content */}
-              <main className="flex-1 p-4 md:p-6 space-y-6">{children}</main>
+              <main className="flex-1 p-4 md:p-6 space-y-6">
+                {isLoading ? (
+                  <div className="fixed top-0 left-0 bottom-0 right-0 w-full h-full flex items-center justify-center">
+                    <div className="block w-75 h-75 text-center">
+                      <div className="m-auto flex justify-center">
+                        <Spinner className="size-5" />
+                      </div>
+                      <div className="m-auto">Loading...</div>
+                    </div>
+                  </div>
+                ) : (
+                  children
+                )}
+              </main>
             </div>
           </div>
           <ToastContainer

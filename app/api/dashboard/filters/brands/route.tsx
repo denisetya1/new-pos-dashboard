@@ -1,10 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { buildResponse } from "@/lib/response";
 
-export const GET = async (req: NextRequest) => {
+export const GET = async () => {
+  const session = await auth();
+
   const brands = await prisma.brand.findMany({
     where: {
-      storeId: 1,
+      storeId: Number(session?.user?.storeId),
+      isActive: true,
     },
     orderBy: {
       name: "asc",
@@ -15,5 +19,5 @@ export const GET = async (req: NextRequest) => {
     },
   });
 
-  return NextResponse.json(brands);
+  return buildResponse(brands);
 };

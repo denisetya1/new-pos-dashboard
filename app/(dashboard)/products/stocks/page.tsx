@@ -4,31 +4,28 @@ import SortableHeader from "../../components/SortableHeader";
 import SearchForm from "../components/SearchForm";
 import { useSearchParams } from "next/navigation";
 import queryString from "query-string";
-import { IoPricetagOutline } from "react-icons/io5";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import LoadingContent from "../../components/LoadingContent";
-import DeleteProductModal from "../components/DeleteProductModal";
-import { Prisma } from "@/generated/prisma/client";
 import TablePagination from "../../components/TablePagination";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
 import { useGetProductStocks } from "@/hooks/useProductStocks";
 import StockMovementModal from "../components/StockMovementModal";
-
-type ProductStock = Prisma.ProductGetPayload<{
-  include: { brand: true; category: true; stocks: true };
-}>;
+import { BarcodeIcon } from "lucide-react";
+import { formatCurrency, getFinalPrice } from "@/lib/functions";
+import EditPriceFormModal from "../components/EditPriceModal";
+import { useSession } from "next-auth/react";
+import { ProductWithStocks } from "@/types/product";
+import StockMovementHistoryModal from "../components/StockMovementHistoryModal";
+import AddProductModal from "../components/AddProductModal";
 
 const PriceStockPage = () => {
+  const { data: session } = useSession();
   const searchParams = useSearchParams();
   const params = Object.fromEntries(searchParams.entries());
 
   const limit = 50;
-  const { outletId, categoryId, brandId, search, sort, page } = params;
+  const { categoryId, brandId, search, sort, page } = params;
+  const outletId = session?.user.outletId?.toString();
 
   const qs = queryString.stringify(params);
 
@@ -42,7 +39,8 @@ const PriceStockPage = () => {
   const {
     contents: products,
     totalRow,
-  }: { contents: ProductStock[]; totalRow: number } = productsData?.data || {};
+  }: { contents: ProductWithStocks[]; totalRow: number } =
+    productsData?.data || {};
 
   const currentPage = parseInt(page) || 1;
 
@@ -61,12 +59,15 @@ const PriceStockPage = () => {
         Daftar Harga & Stok
       </h2>
 
+      <div className="my-10 text-right">
+        <AddProductModal onSuccess={refetch} />
+      </div>
+
       <div className="mb-10">
         <SearchForm
           selectedCategory={categoryId}
           selectedBrand={brandId}
           searchProduct={search}
-          selectedOutlet={outletId}
         />
       </div>
       <div className="mb-2">
@@ -90,34 +91,43 @@ const PriceStockPage = () => {
                 scope="col"
                 className="hidden sm:table-cell px-6 py-5 hover:bg-gray-200"
               >
-                <SortableHeader title="SKU" fieldName="sku" />
+                Kategori / Brand
               </th>
               <th
                 scope="col"
                 className="hidden sm:table-cell px-6 py-5 hover:bg-gray-200"
               >
-                <SortableHeader title="Barcode" fieldName="barcode" />
+                HPP
               </th>
               <th
                 scope="col"
                 className="hidden sm:table-cell px-6 py-5 hover:bg-gray-200"
               >
-                <SortableHeader title="Kategori" fieldName="category" />
+                Harga Jual Dasar
               </th>
               <th
                 scope="col"
                 className="hidden sm:table-cell px-6 py-5 hover:bg-gray-200"
               >
-                <SortableHeader title="Brand" fieldName="brand" />
+                Mark Up
+              </th>
+              <th
+                scope="col"
+                className="hidden sm:table-cell px-6 py-5 hover:bg-gray-200"
+              >
+                Diskon
               </th>
               <th scope="col" className="px-6 py-5">
-                Action
+                Harga Final
+              </th>
+              <th scope="col" className="px-6 py-5">
+                Stok
               </th>
             </tr>
           </thead>
           <tbody className="divide-y">
             {products &&
-              products.map((product: ProductStock, index: number) => (
+              products.map((product: ProductWithStocks, index: number) => (
                 <tr
                   key={product.id}
                   className="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700"
@@ -127,51 +137,113 @@ const PriceStockPage = () => {
                   </td>
                   <td className="px-6 py-5 w-80 text-black dark:text-white">
                     <div>{product.name}</div>
-                    {product.priceTagLabel !== null &&
-                      product.priceTagLabel !== "" && (
-                        <div className="flex justify-start gap-1 text-xm text-gray-400">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <IoPricetagOutline />
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom">
-                              <p>Nama di label harga</p>
-                            </TooltipContent>
-                          </Tooltip>
-                          {product.priceTagLabel}
-                        </div>
-                      )}
-                    <div className="sm:hidden text-xs text-gray-400 flex justify-start gap-3">
-                      <div>SKU: {product.sku ? product.sku : "-"}</div>
-                      <div>
-                        Barcode: {product.barcode ? product.barcode : "-"}
+
+                    <div className="flex justify-start items-center gap-1 text-xm text-gray-400">
+                      <BarcodeIcon size={12} />
+                      {product.barcode ? product.barcode : "-"}
+                    </div>
+                  </td>
+                  <td className="hidden sm:table-cell px-6 py-3">
+                    {product.category.name} / {product.brand.name}
+                  </td>
+                  <td className="hidden sm:table-cell px-6 py-3">-</td>
+                  <td className="hidden sm:table-cell px-6 py-3">
+                    <div className="flex justify-end items-center align-top gap-2">
+                      <div className="">
+                        {product?.stocks?.[0]?.sellPrice
+                          ? formatCurrency(
+                              Number(product?.stocks?.[0]?.sellPrice),
+                            )
+                          : "-"}
                       </div>
                     </div>
                   </td>
                   <td className="hidden sm:table-cell px-6 py-3">
-                    {product.sku ? product.sku : "-"}
+                    {product?.stocks?.[0]?.markupPercentage
+                      ? `${product?.stocks?.[0]?.markupPercentage}%`
+                      : "-"}
                   </td>
                   <td className="hidden sm:table-cell px-6 py-3">
-                    {product.barcode ? product.barcode : "-"}
-                  </td>
-                  <td className="hidden sm:table-cell px-6 py-3">
-                    {product.category.name}
-                  </td>
-                  <td className="hidden sm:table-cell px-6 py-3">
-                    {product.brand.name}
+                    {product?.stocks?.[0]?.discountPercentage
+                      ? `${product?.stocks?.[0]?.discountPercentage}%`
+                      : "-"}
                   </td>
                   <td className="px-6 py-3">
-                    <div className="flex flex-row gap-3">
-                      <StockMovementModal
-                        product={product}
-                        direction="IN"
-                        onSuccess={() => {}}
-                      />
-
-                      <DeleteProductModal
-                        deletedProductName={product.name}
-                        productId={product.id.toString()}
-                      />
+                    <div className="flex justify-end items-center gap-2">
+                      <div>
+                        {product.stocks.length > 0 &&
+                          Number(product?.stocks?.[0]?.discountPercentage) >
+                            0 && (
+                            <div className="text-xs line-through text-red-400">
+                              {product.stocks.length > 0 &&
+                                getFinalPrice(
+                                  Number(product.stocks[0]?.sellPrice),
+                                  product.stocks[0].markupPercentage,
+                                  0,
+                                  false,
+                                  true,
+                                )}
+                            </div>
+                          )}
+                        <div>
+                          {product.stocks.length > 0 &&
+                            getFinalPrice(
+                              Number(product.stocks[0]?.sellPrice),
+                              product.stocks[0].markupPercentage,
+                              product.stocks[0].discountPercentage,
+                              true,
+                              true,
+                            )}
+                        </div>
+                        {product.stocks.length === 0 && "-"}
+                      </div>
+                      <div className="">
+                        <EditPriceFormModal
+                          product={product}
+                          outletId={String(session?.user.outletId)}
+                          onSuccess={refetch}
+                        />
+                      </div>
+                    </div>
+                  </td>
+                  <td className="hidden sm:table-cell px-6 py-3">
+                    <div className="flex justify-center items-center gap-2">
+                      <div className="flex justify-center items-center">
+                        <div className="border border-gray-200 rounded-l-lg overflow-hidden">
+                          {
+                            <StockMovementModal
+                              direction="OUT"
+                              product={product}
+                              outletId={String(outletId)}
+                              disabled={
+                                product.stocks[0]?.quantity === undefined ||
+                                product.stocks[0]?.quantity === 0
+                              }
+                              onSuccess={refetch}
+                            />
+                          }
+                        </div>
+                        <div className="px-2 py-2 w-15 border border-gray-200 text-center">
+                          {product.stocks.length > 0
+                            ? `${product.stocks[0]?.quantity}`
+                            : "0"}
+                        </div>
+                        <div className="border border-gray-200 rounded-r-lg overflow-hidden">
+                          <StockMovementModal
+                            direction="IN"
+                            product={product}
+                            outletId={String(outletId)}
+                            disabled={false}
+                            onSuccess={refetch}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <StockMovementHistoryModal
+                          product={product}
+                          outletId={String(outletId)}
+                        />
+                      </div>
                     </div>
                   </td>
                 </tr>

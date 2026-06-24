@@ -1,3 +1,4 @@
+import { handleRes } from "@/lib/response";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 export const useGetProductStocks = (qs: string) => {
@@ -6,20 +7,42 @@ export const useGetProductStocks = (qs: string) => {
     queryFn: () => {
       return fetch(`/api/dashboard/products/stocks?${qs}`, {
         method: "GET",
-      }).then((res) => res.json());
+      }).then((res) => handleRes(res));
     },
   });
 
   return queryProductStock;
 };
 
-export const useUpsertProductStock = (productId: string, outletId: string) => {
+export const useUpsertProductStock = (productId: string) => {
   const mutateProductStock = useMutation({
     mutationKey: ["productStock"],
-    mutationFn: () => {
-      return fetch(`/api/dashboard/products/${productId}/${outletId}/stock`, {
+    mutationFn: ({
+      quantity,
+      moveTypeId,
+      description,
+      direction,
+      moveDate,
+      expiredDate,
+    }: {
+      quantity: number;
+      moveTypeId: string;
+      description: string;
+      direction: string;
+      moveDate: Date;
+      expiredDate?: Date;
+    }) => {
+      return fetch(`/api/dashboard/products/${productId}/stock`, {
         method: "POST",
-      }).then((res) => res.json());
+        body: JSON.stringify({
+          quantity,
+          moveTypeId,
+          description,
+          direction,
+          moveDate,
+          expiredDate,
+        }),
+      }).then((res) => handleRes(res));
     },
   });
 

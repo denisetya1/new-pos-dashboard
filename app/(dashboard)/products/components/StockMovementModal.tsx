@@ -1,27 +1,9 @@
-"use client";
-
-import { Button } from "@/components/ui/button";
-import {
-  MoveType,
-  Outlet,
-  Prisma,
-  ProductStock,
-} from "@/generated/prisma/client";
-import moment from "moment";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { ProductWithStocks } from "@/types/product";
 import Modal from "../../components/Modal";
-import { toast } from "react-toastify";
-import { useGetMoveTypes } from "@/hooks/useMoveTypes";
-import { useUpsertProductStock } from "@/hooks/useProductStocks";
-import { DialogFooter } from "@/components/ui/dialog";
-import { Loader2 } from "lucide-react";
+import { HiMinus, HiPlus } from "react-icons/hi";
+import { Button } from "@/components/ui/button";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  ProductStockFormValues,
-  productStockSchema,
-} from "@/app/schemas/productStockSchema";
 import {
   Form,
   FormControl,
@@ -30,8 +12,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { DatePicker } from "../../components/DatePicker";
-import { Input } from "@/components/ui/input";
+import { Loader2 } from "lucide-react";
+import { NumericFormat } from "react-number-format";
+import { useEffect } from "react";
+import { toast } from "react-toastify";
+import { useGetOutlet } from "@/hooks/useOutlets";
+import { useGetMoveTypes } from "@/hooks/useMoveTypes";
 import {
   Select,
   SelectContent,
@@ -41,106 +27,180 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-type Product = Prisma.ProductGetPayload<{
-  include: { brand: true; category: true; stocks: true };
-}>;
+import { MoveType } from "@/generated/prisma/client";
+import {
+  productStockSchema,
+  type ProductStockFormInputValues,
+  type ProductStockFormOutputValues,
+} from "@/schemas/productStockSchema";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { DatePicker } from "../../components/DatePicker";
+import { useUpsertProductStock } from "@/hooks/useProductStocks";
 
 const StockMovementForm = ({
-  outlet,
-  product,
   direction,
-  productStock,
-  disabled,
-  currentQuantity,
-  onSuccess,
+  product,
+  outletId,
   closeModal,
+  onSuccess,
 }: {
-  outlet: Outlet;
-  product: Product;
   direction: string;
-  currentQuantity: number;
-  productStock?: ProductStock;
-  disabled?: boolean;
-  onSuccess: () => void;
+  product: ProductWithStocks | null;
+  outletId: string;
   closeModal?: () => void;
+  onSuccess?: () => void;
 }) => {
-  const router = useRouter();
-  const [isOpen, setOpen] = useState(false);
-  const [moveDateStr, setMoveDateStr] = useState(moment().format("YYYY-MM-D"));
+  const stock = product?.stocks[0] || null;
+  const { data: outlet } = useGetOutlet(outletId);
+  const { data: moveTypes } = useGetMoveTypes(direction);
 
-  const { data: resMoveTypes } = useGetMoveTypes();
-  const upsertProductStock = useUpsertProductStock(
-    `${product.id}`,
-    `${outlet.id}`,
-  );
-
-  const form = useForm<ProductStockFormValues>({
+  const form = useForm<
+    ProductStockFormInputValues,
+    any,
+    ProductStockFormOutputValues
+  >({
     resolver: zodResolver(productStockSchema),
-    defaultValues: {},
-  });
-  const formOptions = {
     defaultValues: {
-      outletId: outlet.id.toString(),
-      productId: product.id.toString(),
-      productStockId: productStock ? productStock.id.toString() : "",
-      direction,
+      moveTypeId: "",
+      description: "",
+      direction: direction,
+      moveDate: new Date(),
     },
-  };
+  });
 
-  const moveTypes = resMoveTypes?.data?.filter(
-    (m: MoveType) => m.direction === direction,
-  );
-
-  const onSubmit = (values: ProductStockFormValues) => {
-    upsertProductStock.mutate();
-    // try {
-    //   const res = await fetch(
-    //     `/api/products/${product.id}/${outlet.id}/stock`,
-    //     {
-    //       method: "POST",
-    //       body: JSON.stringify({
-    //         ...body,
-    //         moveDateStr,
-    //       }),
-    //     },
-    //   )
-    //     .then((res) => res.json())
-    //     .then((resJson) => {
-    //       toast.success("Stok berhasil disimpan.");
-    //     });
-
-    //   reset({ ...formOptions.defaultValues });
-    //   router.refresh();
-    //   setOpen(false);
-    // } catch (e: any) {
-    //   toast.error(e.message);
-    // }
-  };
+  const { isPending, isError, isSuccess, error, mutate } =
+    useUpsertProductStock(String(product?.id.toString()));
 
   useEffect(() => {
-    if (productStock !== undefined) {
-      // reset({ ...formOptions.defaultValues });
+    if (!isPending && isSuccess) {
+      toast.success("Update harga berhasil.");
+      onSuccess?.();
+      closeModal?.();
     }
-  }, [productStock]);
+
+    if (!isPending && isError) {
+      toast.error(error.message, {
+        theme: "colored",
+      });
+    }
+  }, [isPending, isSuccess, error, isError]);
+
+  const onSubmit = (values: ProductStockFormOutputValues) => {
+    mutate(values);
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="grid gap-4">
-          <div>
-            <div>Nama Produk</div>
-            <div>{product.name}</div>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 my-5">
+        <div className="mb-10">
+          <div className="flex flex-row gap-2">
+            <div className="w-30">Nama Produk</div>
+            <div>: {product?.name}</div>
           </div>
-          <div>
-            <div>Outlet</div>
-            <div>{outlet.name}</div>
+          <div className="flex flex-row gap-2">
+            <div className="w-30">Outlet</div>
+            <div>: {outlet?.data?.name}</div>
           </div>
-          <input type="hidden" name="outletId" value={`${outlet.id}`} />
+        </div>
 
+        <FormField
+          control={form.control}
+          name="moveDate"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tanggal</FormLabel>
+              <FormControl>
+                <DatePicker
+                  selected={field.value}
+                  onSelect={field.onChange}
+                  placeholder=""
+                  disabled={{
+                    after: new Date(),
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="moveTypeId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{`Kategori ${direction === "IN" ? "Penambahan" : "Pengurangan"} Stok`}</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                value={String(field.value)}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih Kategori" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Pilih Kategori</SelectLabel>
+                    {moveTypes?.data?.map((movetype: MoveType) => (
+                      <SelectItem
+                        key={movetype.id.toString()}
+                        value={movetype.id.toString()}
+                      >
+                        {movetype.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="quantity"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{`Jumlah ${direction === "IN" ? "Penambahan" : "Pengurangan"} Stok`}</FormLabel>
+              <FormControl>
+                <NumericFormat
+                  className="w-25"
+                  value={String(field.value)}
+                  thousandSeparator="."
+                  decimalSeparator=","
+                  allowNegative={false}
+                  inputMode="numeric"
+                  customInput={Input}
+                  placeholder="0"
+                  getInputRef={field.ref}
+                  onValueChange={(values) => {
+                    field.onChange(values.value);
+                  }}
+                  isAllowed={({ floatValue }) =>
+                    floatValue === undefined ||
+                    direction === "IN" ||
+                    (direction === "OUT" &&
+                      Number(stock?.quantity) > 0 &&
+                      floatValue >= 0 &&
+                      floatValue <= Number(stock?.quantity))
+                  }
+                />
+              </FormControl>
+              <div className="text-sm text-gray-400">
+                Stok saat ini: {stock?.quantity ? stock?.quantity : "0"}
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {direction === "IN" && (
           <FormField
             control={form.control}
-            name="moveDate"
+            name="expiredDate"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Tanggal</FormLabel>
@@ -148,208 +208,81 @@ const StockMovementForm = ({
                   <DatePicker
                     selected={field.value}
                     onSelect={field.onChange}
-                    placeholder="Pilih Tanggal"
+                    placeholder="Pilih Tanggal Expired"
+                    disabled={{ before: new Date() }}
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+        )}
 
-          <FormField
-            control={form.control}
-            name="moveTypeId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Jenis Penambahan/Pengurangan Stok</FormLabel>
-                <Select onValueChange={field.onChange} value={`${field.value}`}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih kategori" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Pilih</SelectLabel>
-                      {moveTypes?.map((category: MoveType) => (
-                        <SelectItem
-                          key={category.id}
-                          value={category.id.toString()}
-                        >
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Keterangan</FormLabel>
+              <FormControl>
+                <Textarea {...field}></Textarea>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <FormField
-            control={form.control}
-            name="quantity"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tanggal</FormLabel>
-                <FormControl>
-                  <Input type="number" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Keterangan</FormLabel>
-                <FormControl>
-                  <Input type="text" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        {/* <div className="space-y-6">
-          <div className="grid gap-4 mb-4 grid-cols-2">
-            <div className="col-span-2">
-              <div className="mb-2 block">
-                <Label htmlFor="input-gray" color="gray" value="Outlet" />
-              </div>
-              <TextInput name="name" value={outlet.name} disabled />
-            </div>
-
-            <div className="col-span-2">
-              <div className="mb-2 block">
-                <Label htmlFor="input-gray" color="gray" value="Nama Produk" />
-              </div>
-              <TextInput
-                id="input-gray"
-                name="name"
-                value={product.name}
-                disabled
-              />
-            </div>
-
-            <div className="col-span-2">
-              <div className="mb-2 block">
-                <Label htmlFor="input-gray" color="gray" value="Tanggal" />
-              </div>
-
-              <Datepicker
-                language="en-ID"
-                labelTodayButton="Hari Ini"
-                labelClearButton="Batal"
-                weekStart={1}
-                onSelectedDateChanged={(d) =>
-                  setMoveDateStr(moment(d).format("YYYY-MM-D"))
-                }
-                defaultDate={new Date(moment().format())}
-                minDate={new Date(moment().subtract(4, "days").format())}
-              />
-            </div>
-
-            <div className="col-span-2">
-              <div className="mb-2 block">
-                <Label htmlFor="input-gray" color="gray" value="Jumlah" />
-              </div>
-              <TextInput
-                className="w-[100px]"
-                min={1}
-                max={direction === "OUT" ? currentQuantity : 999999999}
-                type="number"
-                {...register("quantity")}
-                placeholder=""
-                helperText={<>stok tersedia: {currentQuantity}</>}
-              />
-            </div>
-
-            <div className="col-span-2">
-              <div className="mb-2 block">
-                <Label
-                  htmlFor="input-gray"
-                  color="gray"
-                  value={`Jenis ${direction === "IN" ? "Penambahan" : "Pengurangan"} Stok`}
-                />
-              </div>
-              <Select {...register("moveTypeId")}>
-                {moveTypes.map((movement: MoveType) => (
-                  <option key={movement.id} value={movement.id.toString()}>
-                    {movement.name}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            <div className="col-span-2">
-              <div className="mb-2 block">
-                <Label htmlFor="input-gray" color="gray" value="Keterangan" />
-              </div>
-              <Textarea
-                className=""
-                {...register("description")}
-                placeholder=""
-              />
-            </div>
-          </div>
-          <input type="hidden" {...register("direction")} />
-        </div> */}
-
-        <DialogFooter>
+        <div className="flex justify-end gap-2 pt-4">
           <Button
             type="button"
             variant="outline"
-            onClick={() => {
-              form.reset();
-              closeModal?.();
-            }}
+            onClick={() => closeModal?.()}
           >
             Batal
           </Button>
-          <Button type="submit" disabled={upsertProductStock.isPending}>
-            {upsertProductStock.isPending && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            )}
+          <Button type="submit" disabled={isPending}>
+            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Simpan
           </Button>
-        </DialogFooter>
+        </div>
       </form>
     </Form>
   );
 };
 
 const StockMovementModal = ({
-  product,
   direction,
+  product,
+  outletId,
+  disabled,
   onSuccess,
 }: {
-  product: Product;
-  direction: "IN" | "OUT";
-  onSuccess: () => void;
+  direction: string;
+  disabled: boolean;
+  product: ProductWithStocks | null;
+  outletId: string;
+  onSuccess?: () => void;
 }) => {
   return (
     <Modal
-      title={
-        direction === "IN"
-          ? "PENAMBAHAN STOK (STOK MASUK)"
-          : "PENGURANGAN STOK (STOK KELUAR)"
-      }
+      title={direction === "IN" ? "Penambahan Stok" : "Pengurangan Stok"}
       trigger={
-        <Button variant="default" size="sm">
-          {direction === "IN" ? "-" : "+"}
+        <Button
+          variant="outline"
+          className="border-0 rounded-none"
+          size="sm"
+          disabled={disabled}
+        >
+          {direction === "IN" ? <HiPlus /> : <HiMinus />}
         </Button>
       }
-      tooltipText={direction === "IN" ? "Kurangi Stok" : "Tambah Stok"}
+      tooltipText={direction === "IN" ? "Penambahan Stok" : "Pengurangan Stok"}
     >
       <StockMovementForm
         product={product}
-        onSuccess={onSuccess}
+        outletId={outletId}
         direction={direction}
+        onSuccess={onSuccess}
       />
     </Modal>
   );

@@ -6,7 +6,15 @@ export const useGetProducts = (qs: string) => {
     queryFn: () => {
       return fetch(`/api/dashboard/products?${qs}`, {
         method: "GET",
-      }).then((res) => res.json());
+      }).then(async (res) => {
+        const json = await res.json();
+
+        if (res.ok) {
+          return json;
+        } else {
+          throw json;
+        }
+      });
     },
   });
 

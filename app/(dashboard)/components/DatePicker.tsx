@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -10,25 +9,37 @@ import {
 } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { ChevronDownIcon } from "lucide-react";
+import { useState } from "react";
+import { Matcher } from "react-day-picker";
 
 export function DatePicker({
   selected,
   onSelect,
   placeholder,
+  displayFormat = "dd-MM-yyyy",
+  disabled,
 }: {
-  selected: Date;
-  onSelect: () => void;
-  placeholder: string;
+  selected?: Date;
+  onSelect: (date: Date) => void;
+  placeholder?: string;
+  displayFormat?: string;
+  disabled?: Matcher | Matcher[];
 }) {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <Popover>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
           data-empty={!selected}
           className="w-53 justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
         >
-          {selected ? format(selected, "PPP") : <span>{placeholder}</span>}
+          {selected ? (
+            format(selected, displayFormat)
+          ) : (
+            <span>{placeholder}</span>
+          )}
           <ChevronDownIcon />
         </Button>
       </PopoverTrigger>
@@ -36,8 +47,16 @@ export function DatePicker({
         <Calendar
           mode="single"
           selected={selected}
-          onSelect={onSelect}
-          defaultMonth={selected}
+          onSelect={(date) => {
+            if (!date) return;
+
+            if (typeof disabled === "function" && disabled(date)) return;
+
+            onSelect(date);
+            setIsOpen(false);
+          }}
+          defaultMonth={selected ?? new Date()}
+          disabled={disabled}
         />
       </PopoverContent>
     </Popover>

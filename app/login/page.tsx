@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Lock } from "lucide-react";
-import { loginSchema, type LoginFormValues } from "../schemas/loginSchema";
+import { loginSchema, type LoginFormValues } from "../../schemas/loginSchema";
 
 export default function LoginPage() {
   const [serverError, setServerError] = useState("");

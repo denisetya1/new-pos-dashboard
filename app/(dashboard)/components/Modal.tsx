@@ -28,7 +28,7 @@ const Modal = ({
   title: React.ReactNode;
   trigger: React.ReactNode;
   children: React.ReactNode;
-  tooltipText: string;
+  tooltipText?: string;
 }) => {
   const [open, setOpen] = useState(false);
 
@@ -40,7 +40,7 @@ const Modal = ({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {tooltipText !== "" ? (
+      {tooltipText && tooltipText !== "" ? (
         <Tooltip>
           <TooltipTrigger asChild>
             <DialogTrigger asChild>{trigger}</DialogTrigger>
@@ -50,12 +50,10 @@ const Modal = ({
           </TooltipContent>
         </Tooltip>
       ) : (
-        <DialogTrigger asChild>
-          <Button variant="outline">{trigger}</Button>
-        </DialogTrigger>
+        <DialogTrigger asChild>{trigger}</DialogTrigger>
       )}
 
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="sm:max-w-xl max-h-[80%] flex flex-col lg:min-w-[50%]">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>

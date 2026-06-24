@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import queryString from "query-string";
-import { useQuery } from "@tanstack/react-query";
 import { Brand, Category, Outlet } from "@/generated/prisma/client";
 import { Label } from "@/components/ui/label";
 import {
@@ -26,12 +25,12 @@ const SearchForm = ({
   selectedCategory,
   selectedBrand,
   searchProduct,
-  selectedOutlet,
+  outletId,
   pageURL,
 }: {
   selectedCategory: string | undefined;
   selectedBrand: string | undefined;
-  selectedOutlet?: string | undefined;
+  outletId?: string | undefined;
   searchProduct: string | undefined;
   pageURL?: string | undefined;
 }) => {
@@ -40,11 +39,9 @@ const SearchForm = ({
   const [categoryId, setCategoryId] = useState(selectedCategory);
   const [brandId, setBrandId] = useState(selectedBrand);
   const [search, setSearch] = useState(searchProduct || "");
-  const [outletId, setOutletId] = useState(selectedOutlet);
 
   const { data: brands } = useGetBrands();
   const { data: categories } = useGetCategories();
-  const { data: outlets } = useGetOutlets();
 
   const handleSearch = () => {
     const qs = queryString.stringify(
@@ -66,7 +63,6 @@ const SearchForm = ({
   const handleReset = () => {
     setBrandId("");
     setCategoryId("");
-    setOutletId("");
     setSearch("");
     router.push(`${pathname}`);
   };
@@ -79,49 +75,6 @@ const SearchForm = ({
 
   return (
     <div className="sm:flex flex-row justify-start gap-5 items-center mb-8">
-      {outlets && outlets?.length > 0 ? (
-        <div>
-          <div className="mb-2 block">
-            <Label
-              className="text-slate-600"
-              htmlFor="product-name"
-              title="Outlet"
-            >
-              Outlet
-            </Label>
-          </div>
-          <Select
-            onValueChange={(value) => setOutletId(value)}
-            value={outletId}
-            name="outletId"
-          >
-            <SelectTrigger
-              value={outletId}
-              className="w-full max-w-48 bg-white"
-              onReset={() => setOutletId("")}
-            >
-              <SelectValue placeholder="Pilih Outlet" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Outlet</SelectLabel>
-                {outlets &&
-                  outlets.map((outlet: Outlet) => (
-                    <SelectItem
-                      key={outlet.id.toString()}
-                      value={outlet.id.toString()}
-                    >
-                      {outlet.name}
-                    </SelectItem>
-                  ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-      ) : (
-        <></>
-      )}
-
       <div>
         <div className="mb-2 block">
           <Label
@@ -147,8 +100,8 @@ const SearchForm = ({
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Kategori</SelectLabel>
-              {categories &&
-                categories.map((category: Category) => (
+              {categories?.data &&
+                categories?.data.map((category: Category) => (
                   <SelectItem
                     key={category.id.toString()}
                     value={category.id.toString()}
@@ -186,8 +139,8 @@ const SearchForm = ({
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Brand</SelectLabel>
-              {brands &&
-                brands.map((brand: Brand) => (
+              {brands?.data &&
+                brands?.data?.map((brand: Brand) => (
                   <SelectItem
                     key={brand.id.toString()}
                     value={brand.id.toString()}

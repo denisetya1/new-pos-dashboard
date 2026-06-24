@@ -19,24 +19,28 @@ import TablePagination from "../components/TablePagination";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
 import { useGetProducts } from "@/hooks/useProducts";
+import { useSession } from "next-auth/react";
 
 type Product = Prisma.ProductGetPayload<{
   include: { brand: true; category: true };
 }>;
 
 const ProductsPage = () => {
+  const { data: session } = useSession();
   const searchParams = useSearchParams();
   const params = Object.fromEntries(searchParams.entries());
 
   const limit = 50;
-  const { outletId, categoryId, brandId, search, sort, page } = params;
+  const outletId = session?.user?.outletId;
+  const { categoryId, brandId, search, sort, page } = params;
 
-  const qs = queryString.stringify(params);
+  const qs = queryString.stringify({ ...params, outletId });
 
   const {
     data: productsData,
     isError,
     isPending,
+    error,
     refetch,
   } = useGetProducts(qs);
 
@@ -49,10 +53,15 @@ const ProductsPage = () => {
 
   useEffect(() => {
     if (isError) {
-      toast.error("Terjadi kesalahan saat mengambil data!", {
-        position: "top-right",
-        theme: "colored",
-      });
+      toast.error(
+        error.message
+          ? error.message
+          : "Terjadi kesalahan saat mengambil data!",
+        {
+          position: "top-right",
+          theme: "colored",
+        },
+      );
     }
   }, [isError]);
 
@@ -67,7 +76,6 @@ const ProductsPage = () => {
           selectedCategory={categoryId}
           selectedBrand={brandId}
           searchProduct={search}
-          selectedOutlet={outletId}
         />
       </div>
       <div className="mb-2">

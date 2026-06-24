@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { isEmptyVal } from "@/lib/functions";
 import { prisma } from "@/lib/prisma";
 import { buildResponse } from "@/lib/response";
+import { auth } from "@/auth";
 
 export const GET = async (req: NextRequest) => {
-  const outletId = req.nextUrl.searchParams.get("outletId");
+  const session = await auth();
+
+  const outletId = session?.user.outletId;
   const categoryId = req.nextUrl.searchParams.get("categoryId");
   const brandId = req.nextUrl.searchParams.get("brandId");
   const search = req.nextUrl.searchParams.get("search");
@@ -182,9 +185,8 @@ export const GET = async (req: NextRequest) => {
           id: true,
           outletId: true,
           quantity: true,
+          cogs: true,
           sellPrice: true,
-          sellPriceGrosir: true,
-          minGrosir: true,
           markupPercentage: true,
           discountPercentage: true,
         },

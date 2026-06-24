@@ -26,7 +26,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Modal from "../../components/Modal";
-import { ProductFormValues, productSchema } from "@/app/schemas/productSchema";
+import { ProductFormValues, productSchema } from "@/schemas/productSchema";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Product, Brand, Category } from "@/generated/prisma/client";
 import { HiOutlinePencil } from "react-icons/hi";
@@ -161,7 +161,7 @@ const AddEditProductForm = ({
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel>Kategori</SelectLabel>
-                      {categories?.map((category: Category) => (
+                      {categories?.data?.map((category: Category) => (
                         <SelectItem
                           key={category.id}
                           value={category.id.toString()}
@@ -192,7 +192,7 @@ const AddEditProductForm = ({
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel>Brand</SelectLabel>
-                      {brands?.map((brand: Brand) => (
+                      {brands?.data?.map((brand: Brand) => (
                         <SelectItem key={brand.id} value={brand.id.toString()}>
                           {brand.name}
                         </SelectItem>

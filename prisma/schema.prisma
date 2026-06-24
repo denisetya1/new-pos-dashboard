@@ -16,16 +16,16 @@ model User {
   password      String
   phone         String?
   storeId       BigInt?       @map("store_id")
-  isSubAccount  Boolean?      @map("is_sub_account")
   isActive      Boolean       @default(true) @map("is_active")
   lastLogin     DateTime?     @map("last_login")
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime?     @updatedAt @map("updated_at")
   deletedAt     DateTime?     @map("deleted_at")
   updateBy      String?       @default("") @map("update_by")
+  isSubAccount  Boolean?      @map("is_sub_account")
   transactions  Transaction[]
-  userShift     UserShift[]
   userOutlets   UserOutlet[]
+  userShift     UserShift[]
 
   @@map("users")
 }
@@ -48,11 +48,11 @@ model Role {
 model Province {
   id        BigInt    @id @default(autoincrement())
   name      String
-  cities    City[]
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
   updateBy  String?   @default("") @map("updated_by")
+  cities    City[]
 
   @@map("provinces")
 }
@@ -61,13 +61,14 @@ model City {
   id         BigInt     @id @default(autoincrement())
   name       String
   provinceId BigInt     @map("province_id")
-  province   Province   @relation(fields: [provinceId], references: [id])
-  districts  District[]
   createdAt  DateTime   @default(now()) @map("created_at")
   updatedAt  DateTime?  @updatedAt @map("updated_at")
   deletedAt  DateTime?  @map("deleted_at")
   updateBy   String?    @default("") @map("updated_by")
+  province   Province   @relation(fields: [provinceId], references: [id])
+  districts  District[]
 
+  @@index([provinceId], map: "cities_province_id_fkey")
   @@map("cities")
 }
 
@@ -75,13 +76,14 @@ model District {
   id           BigInt        @id @default(autoincrement())
   name         String
   cityId       BigInt        @map("city_id")
-  city         City          @relation(fields: [cityId], references: [id])
-  subdistricts Subdistrict[]
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime?     @updatedAt @map("updated_at")
   deletedAt    DateTime?     @map("deleted_at")
   updateBy     String?       @default("") @map("updated_by")
+  city         City          @relation(fields: [cityId], references: [id])
+  subdistricts Subdistrict[]
 
+  @@index([cityId], map: "districts_city_id_fkey")
   @@map("districts")
 }
 
@@ -89,12 +91,13 @@ model Subdistrict {
   id         BigInt    @id @default(autoincrement())
   name       String
   districtId BigInt    @map("distric_id")
-  district   District  @relation(fields: [districtId], references: [id])
   createdAt  DateTime  @default(now()) @map("created_at")
   updatedAt  DateTime? @updatedAt @map("updated_at")
   deletedAt  DateTime? @map("deleted_at")
   updateBy   String?   @default("") @map("updated_by")
+  district   District  @relation(fields: [districtId], references: [id])
 
+  @@index([districtId], map: "subdistricts_distric_id_fkey")
   @@map("subdistricts")
 }
 
@@ -113,10 +116,10 @@ model Store {
   updatedAt     DateTime?      @updatedAt @map("updated_at")
   deletedAt     DateTime?      @map("deleted_at")
   updateBy      String?        @default("") @map("updated_by")
-  products      Product[]
   Outlets       Outlet[]
-  suppliers     Suplier[]
   productStocks ProductStock[]
+  products      Product[]
+  suppliers     Suplier[]
 
   @@map("stores")
 }
@@ -124,15 +127,15 @@ model Store {
 model Brand {
   id          BigInt    @id @default(autoincrement())
   name        String
-  description String?   @db.Text()
+  description String?   @db.Text
   img         String?
   storeId     BigInt?   @map("store_id")
-  products    Product[]
   isActive    Boolean   @map("is_active")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime? @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
   updateBy    String?   @default("") @map("updated_by")
+  products    Product[]
 
   @@map("brands")
 }
@@ -140,7 +143,7 @@ model Brand {
 model Category {
   id          BigInt    @id @default(autoincrement())
   name        String
-  description String?   @db.Text()
+  description String?   @db.Text
   img         String?
   storeId     BigInt?   @map("store_id")
   isActive    Boolean   @map("is_active")
@@ -162,51 +165,57 @@ model Product {
   barcode              String?
   sku                  String?
   storeId              BigInt                @map("store_id")
-  store                Store                 @relation(fields: [storeId], references: [id])
   categoryId           BigInt                @map("category_id")
-  category             Category              @relation(fields: [categoryId], references: [id])
   brandId              BigInt                @map("brand_id")
-  brand                Brand                 @relation(fields: [brandId], references: [id])
   linkShopee           String?               @map("link_shopee")
   isActive             Boolean               @map("is_active")
   createdAt            DateTime              @default(now()) @map("created_at")
   updatedAt            DateTime?             @updatedAt @map("updated_at")
   deletedAt            DateTime?             @map("deleted_at")
   updateBy             String?               @default("") @map("updated_by")
+  productType          String?               @default("PRODUCT") @map("product_type") @db.VarChar(100)
   stocks               ProductStock[]
+  brand                Brand                 @relation(fields: [brandId], references: [id])
+  category             Category              @relation(fields: [categoryId], references: [id])
+  store                Store                 @relation(fields: [storeId], references: [id])
   StockRequestProducts StockRequestProduct[]
 
+  @@index([brandId], map: "products_brand_id_fkey")
+  @@index([categoryId], map: "products_category_id_fkey")
+  @@index([storeId], map: "products_store_id_fkey")
   @@map("products")
 }
 
 model Outlet {
   id               BigInt         @id @default(autoincrement())
   name             String
-  address          String?
-  phone            String?
-  printHeaderLogo  String?        @map("print_header_logo")
-  printHeaderLine1 String?        @map("print_header_line1")
-  printHeaderLine2 String?        @map("print_header_line2")
-  printHeaderLine3 String?        @map("print_header_line3")
-  printHeaderLine4 String?        @map("print_header_line4")
-  printHeaderLine5 String?        @map("print_header_line5")
-  printExtraInfo   String?        @map("printExtraInfo")
   sequence         Int?           @map("sequence")
   storeId          BigInt         @map("store_id")
-  store            Store          @relation(fields: [storeId], references: [id])
   isActive         Boolean        @map("is_active")
   isActivePOS      Boolean?       @map("is_active_pos")
   createdAt        DateTime       @default(now()) @map("created_at")
   updatedAt        DateTime?      @updatedAt @map("updated_at")
   deletedAt        DateTime?      @map("deleted_at")
   updateBy         String?        @default("") @map("updated_by")
+  address          String?
+  phone            String?
+  printExtraInfo   String?        @map("printExtraInfo")
+  printHeaderLine1 String?        @map("print_header_line1")
+  printHeaderLine2 String?        @map("print_header_line2")
+  printHeaderLine3 String?        @map("print_header_line3")
+  printHeaderLine4 String?        @map("print_header_line4")
+  printHeaderLogo  String?        @map("print_header_logo")
+  printHeaderLine5 String?        @map("print_header_line5")
+  discounts        Discount[]
+  store            Store          @relation(fields: [storeId], references: [id])
   productStock     ProductStock[]
-  reqOutlets       StockRequest[] @relation("reqOutlet")
-  destOutlets      StockRequest[] @relation("destOutlet")
-  transactions     Transaction[]
   shifts           Shift[]
+  destOutlets      StockRequest[] @relation("destOutlet")
+  reqOutlets       StockRequest[] @relation("reqOutlet")
+  transactions     Transaction[]
   userOutlets      UserOutlet[]
 
+  @@index([storeId], map: "outlets_store_id_fkey")
   @@map("outlets")
 }
 
@@ -216,24 +225,22 @@ model Suplier {
   address   String    @db.Text
   phone     String
   storeId   BigInt    @map("store_id")
-  store     Store     @relation(fields: [storeId], references: [id])
   isActive  Boolean   @map("is_active")
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
   updateBy  String?   @default("") @map("updated_by")
+  store     Store     @relation(fields: [storeId], references: [id])
 
+  @@index([storeId], map: "suppliers_store_id_fkey")
   @@map("suppliers")
 }
 
 model ProductStock {
   id                 BigInt          @id @default(autoincrement())
   productId          BigInt          @map("product_id")
-  product            Product         @relation(fields: [productId], references: [id])
   storeId            BigInt          @map("store_id")
-  store              Store           @relation(fields: [storeId], references: [id])
   outletId           BigInt          @map("outlet_id")
-  Outlet             Outlet          @relation(fields: [outletId], references: [id])
   quantity           Int
   sellPrice          Decimal         @db.Decimal(10, 2)
   sellPriceGrosir    Decimal         @db.Decimal(10, 2)
@@ -245,15 +252,16 @@ model ProductStock {
   updatedAt          DateTime?       @updatedAt @map("updated_at")
   deletedAt          DateTime?       @map("deleted_at")
   updateBy           String?         @default("") @map("updated_by")
+  cogs               Decimal         @default(0.00) @db.Decimal(10, 2)
+  Outlet             Outlet          @relation(fields: [outletId], references: [id])
+  product            Product         @relation(fields: [productId], references: [id])
+  store              Store           @relation(fields: [storeId], references: [id])
   stockMovements     StockMovement[]
 
   @@unique([storeId, productId, outletId])
+  @@index([outletId], map: "product_stocks_outlet_id_fkey")
+  @@index([productId], map: "product_stocks_product_id_fkey")
   @@map("product_stocks")
-}
-
-enum DirectionEnum {
-  IN
-  OUT
 }
 
 model MoveType {
@@ -276,13 +284,11 @@ model StockMovement {
   moveDate       DateTime      @map("move_date") @db.Date
   moveDateStr    String        @default("") @map("move_date_str")
   productStockId BigInt        @map("product_stock_id")
-  productStock   ProductStock  @relation(fields: [productStockId], references: [id])
   startQuantity  Int?          @map("start_quantity")
   quantity       Int
   endQuantity    Int?          @map("end_quantity")
   direction      DirectionEnum @map("direction")
   moveTypeId     BigInt        @map("move_type_id")
-  moveType       MoveType      @relation(fields: [moveTypeId], references: [id])
   supplierId     BigInt?       @map("supplier_id")
   description    String?       @db.Text
   cogs           Decimal?      @db.Decimal(10, 2)
@@ -290,7 +296,15 @@ model StockMovement {
   updatedAt      DateTime?     @updatedAt @map("updated_at")
   deletedAt      DateTime?     @map("deleted_at")
   updateBy       String?       @default("") @map("updated_by")
+  expiredDateStr String?       @default("") @map("expired_date_str")
+  expiredDate    DateTime?     @map("expired_date")
+  soldOut        Boolean?      @map("sold_out")
+  moveType       MoveType      @relation(fields: [moveTypeId], references: [id])
+  productStock   ProductStock  @relation(fields: [productStockId], references: [id])
 
+  @@index([expiredDate, soldOut], map: "idx_expired_date_sold_out")
+  @@index([moveTypeId], map: "stock_movements_move_type_id_fkey")
+  @@index([productStockId], map: "stock_movements_product_stock_id_fkey")
   @@map("stock_movements")
 }
 
@@ -299,9 +313,7 @@ model StockRequest {
   requestTime         DateTime              @map("request_time")
   approvedTime        DateTime?             @map("approved_time")
   requestOutletId     BigInt                @map("request_outled_id")
-  reqOutlet           Outlet                @relation("reqOutlet", fields: [requestOutletId], references: [id])
   destinationOutletId BigInt                @map("destination_outled_id")
-  destOutlet          Outlet                @relation("destOutlet", fields: [destinationOutletId], references: [id])
   isClosed            Boolean               @default(false) @map("is_closed")
   isApproved          Boolean               @default(false) @map("is_approved")
   createdAt           DateTime              @default(now()) @map("created_at")
@@ -309,23 +321,29 @@ model StockRequest {
   deletedAt           DateTime?             @map("deleted_at")
   updateBy            String?               @default("") @map("updated_by")
   products            StockRequestProduct[]
+  destOutlet          Outlet                @relation("destOutlet", fields: [destinationOutletId], references: [id])
+  reqOutlet           Outlet                @relation("reqOutlet", fields: [requestOutletId], references: [id])
 
+  @@index([destinationOutletId], map: "stock_requests_destination_outled_id_fkey")
+  @@index([requestOutletId], map: "stock_requests_request_outled_id_fkey")
   @@map("stock_requests")
 }
 
 model StockRequestProduct {
   id             BigInt       @id @default(autoincrement())
   stockRequestId BigInt
-  stockRequest   StockRequest @relation(fields: [stockRequestId], references: [id])
   productId      BigInt       @map("product_id")
-  product        Product      @relation(fields: [productId], references: [id])
   quantity       Int
   isApproved     Boolean      @map("is_approved")
   createdAt      DateTime     @default(now()) @map("created_at")
   updatedAt      DateTime?    @updatedAt @map("updated_at")
   deletedAt      DateTime?    @map("deleted_at")
   updateBy       String?      @default("") @map("updated_by")
+  product        Product      @relation(fields: [productId], references: [id])
+  stockRequest   StockRequest @relation(fields: [stockRequestId], references: [id])
 
+  @@index([productId], map: "stock_request_products_product_id_fkey")
+  @@index([stockRequestId], map: "stock_request_products_stockRequestId_fkey")
   @@map("stock_request_products")
 }
 
@@ -333,7 +351,7 @@ model PaymentMethod {
   id                   Int                   @id @default(autoincrement())
   name                 String
   displayName          String                @map("display_name")
-  description          String?               @db.Text()
+  description          String?               @db.Text
   img                  String?
   isActive             Boolean               @map("is_active")
   createdAt            DateTime              @default(now()) @map("created_at")
@@ -350,39 +368,42 @@ model OutletPaymentMethod {
   outletId        BigInt?       @map("outlet_id")
   storeId         BigInt?       @map("storeId")
   paymentMethodId Int           @map("payment_method_id")
-  paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id])
   isActive        Boolean       @map("is_active")
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime?     @updatedAt @map("updated_at")
   deletedAt       DateTime?     @map("deleted_at")
   updateBy        String?       @default("") @map("updated_by")
+  paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id])
   transactions    Transaction[]
 
   @@unique([storeId, outletId, paymentMethodId])
+  @@index([paymentMethodId], map: "outlet_payment_methods_payment_method_id_fkey")
   @@map("outlet_payment_methods")
 }
 
 model UserOutlet {
   id        BigInt    @id @default(autoincrement())
   userId    String
-  user      User      @relation(fields: [userId], references: [id])
   outletId  BigInt    @map("outlet_id")
-  outlet    Outlet    @relation(fields: [outletId], references: [id])
   roleId    BigInt    @map("role_id")
-  role      Role      @relation(fields: [roleId], references: [id])
   isActive  Boolean   @map("is_active")
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
   updateBy  String?   @default("") @map("updated_by")
+  outlet    Outlet    @relation(fields: [outletId], references: [id])
+  role      Role      @relation(fields: [roleId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
 
+  @@index([outletId], map: "user_outlets_outlet_id_fkey")
+  @@index([roleId], map: "user_outlets_role_id_fkey")
+  @@index([userId], map: "user_outlets_userId_fkey")
   @@map("user_outlets")
 }
 
 model Shift {
   id           BigInt      @id @default(autoincrement())
   outletId     BigInt      @map("outlet_id")
-  outlet       Outlet      @relation(fields: [outletId], references: [id])
   name         String
   sort         Int
   workingHours String?     @map("working_hours")
@@ -391,17 +412,17 @@ model Shift {
   updatedAt    DateTime?   @updatedAt @map("updated_at")
   deletedAt    DateTime?   @map("deleted_at")
   updateBy     String?     @default("") @map("updated_by")
+  outlet       Outlet      @relation(fields: [outletId], references: [id])
   userShifts   UserShift[]
 
+  @@index([outletId], map: "shifts_outlet_id_fkey")
   @@map("shifts")
 }
 
 model UserShift {
   id            BigInt        @id @default(autoincrement())
   shiftId       BigInt        @map("shift_id")
-  shift         Shift         @relation(fields: [shiftId], references: [id])
   userId        String        @map("user_id")
-  user          User          @relation(fields: [userId], references: [id])
   startDateTime DateTime      @map("start_date_time")
   endDateTime   DateTime?     @map("end_date_time")
   capital       Decimal?      @map("capital") @db.Decimal(10, 2)
@@ -411,74 +432,71 @@ model UserShift {
   deletedAt     DateTime?     @map("deleted_at")
   updateBy      String?       @default("") @map("updated_by")
   transactions  Transaction[]
+  shift         Shift         @relation(fields: [shiftId], references: [id])
+  user          User          @relation(fields: [userId], references: [id])
 
+  @@index([shiftId], map: "user_shifts_shift_id_fkey")
+  @@index([userId], map: "user_shifts_user_id_fkey")
   @@map("user_shifts")
 }
 
 model Transaction {
-  id            String    @id @db.VarChar(25)
-  outletId      BigInt    @map("outlet_id")
-  outlet        Outlet    @relation(fields: [outletId], references: [id])
-  storeId       BigInt    @map("store_id")
-  userId        String    @map("user_id")
-  user          User      @relation(fields: [userId], references: [id])
-  userShiftId   BigInt    @map("user_shift_id")
-  userShift     UserShift @relation(fields: [userShiftId], references: [id])
-  totalItem     Int?      @map("total_item")
-  totalPrice    Decimal?  @map("total_price") @db.Decimal(10, 2)
-  totalDiscount Decimal?  @map("total_discount") @db.Decimal(10, 2)
-  amountPaid    Decimal?  @map("amount_paid") @db.Decimal(10, 2)
-  amountChange  Decimal?  @map("amount_change") @db.Decimal(10, 2)
-
+  id                    String              @id @db.VarChar(25)
+  outletId              BigInt              @map("outlet_id")
+  storeId               BigInt              @map("store_id")
+  userId                String              @map("user_id")
+  userShiftId           BigInt              @map("user_shift_id")
+  totalItem             Int?                @map("total_item")
+  totalPrice            Decimal?            @map("total_price") @db.Decimal(10, 2)
+  totalDiscount         Decimal?            @map("total_discount") @db.Decimal(10, 2)
+  amountPaid            Decimal?            @map("amount_paid") @db.Decimal(10, 2)
+  amountChange          Decimal?            @map("amount_change") @db.Decimal(10, 2)
   outletPaymentMethodId BigInt              @map("outlet_payment_method_id")
-  outletPaymentMethod   OutletPaymentMethod @relation(fields: [outletPaymentMethodId], references: [id])
   cardNumber            String?             @map("card_number")
   confirmNumber         String?             @map("confirm_number")
+  transactionTime       DateTime            @map("transaction_time")
+  createdAt             DateTime            @default(now()) @map("created_at")
+  updatedAt             DateTime?           @updatedAt @map("updated_at")
+  deletedAt             DateTime?           @map("deleted_at")
+  updateBy              String?             @default("") @map("updated_by")
+  transactionDetails    TransactionDetail[]
+  outlet                Outlet              @relation(fields: [outletId], references: [id])
+  outletPaymentMethod   OutletPaymentMethod @relation(fields: [outletPaymentMethodId], references: [id])
+  user                  User                @relation(fields: [userId], references: [id])
+  userShift             UserShift           @relation(fields: [userShiftId], references: [id])
 
-  transactionTime    DateTime            @map("transaction_time")
-  createdAt          DateTime            @default(now()) @map("created_at")
-  updatedAt          DateTime?           @updatedAt @map("updated_at")
-  deletedAt          DateTime?           @map("deleted_at")
-  updateBy           String?             @default("") @map("updated_by")
-  transactionDetails TransactionDetail[]
-
+  @@index([outletId], map: "transactions_outlet_id_fkey")
+  @@index([outletPaymentMethodId], map: "transactions_outlet_payment_method_id_fkey")
+  @@index([userId], map: "transactions_user_id_fkey")
+  @@index([userShiftId], map: "transactions_user_shift_id_fkey")
   @@map("transactions")
 }
 
-enum DetailCategoryEnum {
-  PRODUCT
-  DISCOUNT
-  DISCOUNT_VOUCHER
-  DISCOUNT_ADDITIONAL
-}
-
 model TransactionDetail {
-  id            BigInt      @id @default(autoincrement())
-  transactionId String      @map("transaction_id")
-  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  id                 BigInt             @id @default(autoincrement())
+  transactionId      String             @map("transaction_id")
+  productId          BigInt             @map("product_id")
+  name               String
+  barcode            String?
+  categoryId         BigInt             @map("category_id")
+  brandId            BigInt             @map("brand_id")
+  detailCategory     DetailCategoryEnum @default(PRODUCT) @map("detail_category")
+  qty                Int                @map("qty")
+  sellPrice          Decimal            @map("sell_price") @db.Decimal(10, 2)
+  discountPercentage Int?               @map("discount_percentage")
+  markupPercentage   Int?               @map("markup_percentage")
+  discountAmount     Decimal            @map("discount_amount") @db.Decimal(10, 2)
+  finalSellPrice     Decimal            @map("final_sell_price") @db.Decimal(10, 2)
+  total              Decimal            @map("total") @db.Decimal(10, 2)
+  totalDiscount      Decimal            @map("total_discount") @db.Decimal(10, 2)
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime?          @updatedAt @map("updated_at")
+  deletedAt          DateTime?          @map("deleted_at")
+  updateBy           String?            @default("") @map("updated_by")
+  productStockId     BigInt             @map("product_stock_id")
+  transaction        Transaction        @relation(fields: [transactionId], references: [id])
 
-  productStockId BigInt             @map("product_stock_id")
-  productId      BigInt             @map("product_id")
-  name           String
-  barcode        String?
-  categoryId     BigInt             @map("category_id")
-  brandId        BigInt             @map("brand_id")
-  detailCategory DetailCategoryEnum @default(PRODUCT) @map("detail_category")
-
-  qty                Int     @map("qty")
-  sellPrice          Decimal @map("sell_price") @db.Decimal(10, 2)
-  discountPercentage Int?    @map("discount_percentage")
-  markupPercentage   Int?    @map("markup_percentage")
-  discountAmount     Decimal @map("discount_amount") @db.Decimal(10, 2)
-  finalSellPrice     Decimal @map("final_sell_price") @db.Decimal(10, 2)
-  total              Decimal @map("total") @db.Decimal(10, 2)
-  totalDiscount      Decimal @map("total_discount") @db.Decimal(10, 2)
-
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime? @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
-  updateBy  String?   @default("") @map("updated_by")
-
+  @@index([transactionId], map: "transaction_details_transaction_id_fkey")
   @@map("transaction_details")
 }
 
@@ -488,19 +506,19 @@ model Device {
   deviceNumber     Int       @map("device_number")
   manufacturer     String?   @map("manufacturer")
   brand            String?   @map("brand")
-  deviceName       String?   @map("device_name")
-  deviceType       Int?      @map("device_type")
-  modelName        String?   @map("model_name")
   modelId          String?   @map("modelId")
-  osName           String?   @map("os_name")
-  osVersion        String?   @map("os_version")
-  storeId          BigInt    @map("store_id")
-  outletId         BigInt?   @map("outlet_id")
-  platformApiLevel Int?      @map("platform_api_level")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime? @updatedAt @map("updated_at")
   deletedAt        DateTime? @map("deleted_at")
   updateBy         String?   @default("") @map("updated_by")
+  storeId          BigInt    @map("store_id")
+  deviceName       String?   @map("device_name")
+  deviceType       Int?      @map("device_type")
+  osName           String?   @map("os_name")
+  osVersion        String?   @map("os_version")
+  platformApiLevel Int?      @map("platform_api_level")
+  modelName        String?   @map("model_name")
+  outletId         BigInt?   @map("outlet_id")
 
   @@map("devices")
 }
@@ -521,9 +539,57 @@ model RequestEditTransaction {
 model TestTransaction {
   id            BigInt    @id @default(autoincrement())
   transactionId String    @map("transaction_id")
-  data          String    @db.Text()
+  data          String    @db.Text
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime? @updatedAt @map("updated_at")
   deletedAt     DateTime? @map("deleted_at")
   updateBy      String?   @default("") @map("updated_by")
+}
+
+model Barcode {
+  id        BigInt  @id @default(autoincrement())
+  productId BigInt? @map("product_id")
+  barcode   String? @db.VarChar(100)
+  storeId   BigInt? @map("store_id")
+
+  @@map("barcodes")
+}
+
+model Discount {
+  id             BigInt                  @id @default(autoincrement())
+  name           String                  @db.VarChar(100)
+  discountType   discounts_discount_type @default(PERCENT) @map("discount_type")
+  createdAt      DateTime                @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt      DateTime?               @default(now()) @map("updated_at") @db.DateTime(0)
+  deletedAt      DateTime?               @map("deleted_at") @db.DateTime(0)
+  updatedBy      String?                 @map("updated_by") @db.VarChar(100)
+  outletId       BigInt?                 @map("outlet_id")
+  isActive       Boolean?                @default(true) @map("is_active")
+  code           String?                 @map("code") @db.VarChar(100)
+  minTransaction Decimal?                @map("min_transaction") @db.Decimal(10, 2)
+  maxAmount      Decimal?                @map("max_amount") @db.Decimal(10, 2)
+  created_by     String?                 @map("created_by") @db.VarChar(100)
+  discountValue  Decimal?                @default(0.00) @map("discount_value") @db.Decimal(10, 2)
+  recommendation Boolean?                @default(true)
+  outlets        Outlet?                 @relation(fields: [outletId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "discounts_outlets_FK")
+
+  @@index([outletId], map: "discounts_outlets_FK")
+  @@map("discounts")
+}
+
+enum DirectionEnum {
+  IN
+  OUT
+}
+
+enum DetailCategoryEnum {
+  PRODUCT
+  DISCOUNT
+  DISCOUNT_VOUCHER
+  DISCOUNT_ADDITIONAL
+}
+
+enum discounts_discount_type {
+  PERCENT
+  AMOUNT
 }

@@ -1,3 +1,4 @@
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { buildResponse } from "@/lib/response";
 import { NextResponse } from "next/server";
@@ -21,6 +22,7 @@ export const PUT = async (
   req: Request,
   { params }: { params: Promise<{ productId: string }> },
 ) => {
+  const session = await auth();
   const body = await req.json();
   const { productId } = await params;
 
@@ -30,6 +32,7 @@ export const PUT = async (
     },
     data: {
       ...body,
+      updatedBy: String(session?.user.username),
     },
   });
 
@@ -40,11 +43,16 @@ export const DELETE = async (
   req: Request,
   { params }: { params: Promise<{ productId: string }> },
 ) => {
+  const session = await auth();
   const { productId } = await params;
 
-  const product = await prisma.product.delete({
+  const product = await prisma.product.update({
     where: {
       id: Number(productId),
+    },
+    data: {
+      deletedAt: new Date(),
+      updatedBy: String(session?.user.username),
     },
   });
 
