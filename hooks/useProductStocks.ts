@@ -2,7 +2,7 @@ import { handleRes } from "@/lib/response";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 export const useGetProductStocks = (qs: string) => {
-  const queryProductStock = useQuery({
+  return useQuery({
     queryKey: ["products", qs],
     queryFn: () => {
       return fetch(`/api/dashboard/products/stocks?${qs}`, {
@@ -10,12 +10,10 @@ export const useGetProductStocks = (qs: string) => {
       }).then((res) => handleRes(res));
     },
   });
-
-  return queryProductStock;
 };
 
 export const useUpsertProductStock = (productId: string) => {
-  const mutateProductStock = useMutation({
+  return useMutation({
     mutationKey: ["productStock"],
     mutationFn: ({
       quantity,
@@ -45,6 +43,4 @@ export const useUpsertProductStock = (productId: string) => {
       }).then((res) => handleRes(res));
     },
   });
-
-  return mutateProductStock;
 };

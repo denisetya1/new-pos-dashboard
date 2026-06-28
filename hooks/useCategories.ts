@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 export const useGetCategories = () => {
-  const queryCategories = useQuery({
+  return useQuery({
     queryKey: ["categories"],
     queryFn: () => {
       return fetch("/api/dashboard/filters/categories").then((res) =>
@@ -9,6 +9,4 @@ export const useGetCategories = () => {
       );
     },
   });
-
-  return queryCategories;
 };

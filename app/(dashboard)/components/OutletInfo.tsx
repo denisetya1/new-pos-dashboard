@@ -11,7 +11,7 @@ const OutletInfo = ({ onFinishLoading }: { onFinishLoading: () => void }) => {
     isPending,
     data: outlet,
     isSuccess,
-  } = useGetOutlet(session?.user?.outletId);
+  } = useGetOutlet(String(session?.user?.outletId));
 
   useEffect(() => {
     if (status !== "loading" && !isPending && isSuccess) {
@@ -21,7 +21,7 @@ const OutletInfo = ({ onFinishLoading }: { onFinishLoading: () => void }) => {
 
   return (
     <div className="flex items-center gap-3">
-      <div className="relative hidden sm:block">
+      <div className="relative">
         {isPending && <div>...</div>}
         {!isPending && isSuccess && (
           <div className="flex gap-3 items-center">

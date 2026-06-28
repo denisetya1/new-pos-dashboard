@@ -1,7 +1,6 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { buildResponse } from "@/lib/response";
-import { NextResponse } from "next/server";
 
 export const GET = async (
   req: Request,

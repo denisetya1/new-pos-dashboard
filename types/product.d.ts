@@ -5,5 +5,9 @@ export type ProductWithBrandCategory = Prisma.ProductGetPayload<{
 }>;
 
 export type ProductWithStocks = Prisma.ProductGetPayload<{
-  include: { brand: true; category: true; stocks: true };
+  include: {
+    brand: true;
+    category: true;
+    stocks: { include: { outlet: true } };
+  };
 }>;

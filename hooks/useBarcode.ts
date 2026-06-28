@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 
-export const useGetBarcode = () => {
-  const queryBarcode = useMutation({
+export const useGenerateBarcode = () => {
+  return useMutation({
     mutationKey: ["generate-barcode"],
     mutationFn: () => {
       return fetch("/api/dashboard/products/generate-barcode", {
@@ -9,6 +9,4 @@ export const useGetBarcode = () => {
       }).then((res) => res.json());
     },
   });
-
-  return queryBarcode;
 };

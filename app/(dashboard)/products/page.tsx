@@ -1,8 +1,7 @@
 "use client";
-import { Card } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
+import { Card } from "@/components/ui/card";\\
 import SortableHeader from "../components/SortableHeader";
-import SearchForm from "./components/SearchForm";
+import SearchForm from "./components/SearchProductForm";
 import { useSearchParams } from "next/navigation";
 import queryString from "query-string";
 import { IoPricetagOutline } from "react-icons/io5";
@@ -11,7 +10,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import AddEditProductModal from "./components/AddEditProductModal";
+import AddEditProductModal from "./components/EditProductModal";
 import LoadingContent from "../components/LoadingContent";
 import DeleteProductModal from "./components/DeleteProductModal";
 import { Prisma } from "@/generated/prisma/client";

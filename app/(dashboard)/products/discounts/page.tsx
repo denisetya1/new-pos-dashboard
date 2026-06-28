@@ -1,7 +1,7 @@
 "use client";
 import { Card } from "@/components/ui/card";
 import SortableHeader from "../../components/SortableHeader";
-import SearchForm from "../components/SearchForm";
+import SearchForm from "../components/SearchProductForm";
 import { useSearchParams } from "next/navigation";
 import queryString from "query-string";
 import LoadingContent from "../../components/LoadingContent";
@@ -9,24 +9,25 @@ import TablePagination from "../../components/TablePagination";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
 import { formatCurrency } from "@/lib/functions";
-import { useSession } from "next-auth/react";
-import AddProductModal from "../components/AddProductModal";
-import { useGetDiscounts } from "@/hooks/useDiscounts";
+import { useGetDiscounts, usePatchDiscount } from "@/hooks/useDiscounts";
 import { Discount } from "@/generated/prisma/client";
 import { Switch } from "@/components/ui/switch";
 import AddEditDiscountModal from "../components/AddEditDiscountModal";
+import SearchDiscountForm from "../components/SearchDiscountForm";
+import { Button } from "@/components/ui/button";
+import { LucideTrash } from "lucide-react";
 
 const DiscountPage = () => {
   const searchParams = useSearchParams();
   const params = Object.fromEntries(searchParams.entries());
 
-  const limit = 50;
-  const { categoryId, brandId, search, sort, page } = params;
+  const limit = 30;
+  const { categoryId, brandId, search, page } = params;
 
   const qs = queryString.stringify(params);
 
   const {
-    data: discounrData,
+    data: discountData,
     isError,
     isPending,
     refetch,
@@ -35,9 +36,10 @@ const DiscountPage = () => {
   const {
     contents: discounts,
     totalRow,
-  }: { contents: Discount[]; totalRow: number } = discounrData?.data || {};
+  }: { contents: Discount[]; totalRow: number } = discountData?.data || {};
 
   const currentPage = parseInt(page) || 1;
+  const { mutate: switchDiscount } = usePatchDiscount();
 
   useEffect(() => {
     if (isError) {
@@ -48,18 +50,34 @@ const DiscountPage = () => {
     }
   }, [isError]);
 
+  const handleSwitch = (values: { isActive: boolean; id: string }) => {
+    const mutationOptions = {
+      onSuccess: (res: any) => {
+        if (res?.error) {
+          toast.error(res.error || "Gagal menyimpan diskon");
+          return;
+        }
+        toast.success("Diskon berhasil diperbarui!");
+        refetch();
+      },
+      onError: (error: any) => {
+        toast.error(error?.message || "Terjadi kesalahan pada server");
+      },
+    };
+
+    switchDiscount(values, mutationOptions);
+  };
+
   return (
     <div>
-      <h2 className="font-bold text-2xl capitalize mb-10">
-        Daftar Diskon & Promo
-      </h2>
+      <h2 className="font-bold text-2xl capitalize mb-10">Daftar Diskon</h2>
 
       <div className="my-10 text-right">
         <AddEditDiscountModal onSuccess={refetch} />
       </div>
 
       <div className="mb-10">
-        <SearchForm
+        <SearchDiscountForm
           selectedCategory={categoryId}
           selectedBrand={brandId}
           searchProduct={search}
@@ -80,35 +98,41 @@ const DiscountPage = () => {
                 No.
               </th>
               <th scope="col" className="px-6 py-5 hover:bg-gray-200">
-                <SortableHeader title="Nama" fieldName="name" />
+                Nama Diskon
               </th>
               <th
                 scope="col"
-                className="hidden sm:table-cell px-6 py-5 hover:bg-gray-200"
+                className="hidden sm:table-cell text-center px-6 py-5 hover:bg-gray-200"
+              >
+                Kode Diskon
+              </th>
+              <th
+                scope="col"
+                className="hidden sm:table-cell text-center px-6 py-5 hover:bg-gray-200"
               >
                 Diskon
               </th>
               <th
                 scope="col"
-                className="hidden sm:table-cell px-6 py-5 hover:bg-gray-200"
+                className="hidden sm:table-cell text-center px-6 py-5 hover:bg-gray-200 w-50"
               >
                 Min. Transaction
               </th>
               <th
                 scope="col"
-                className="hidden sm:table-cell px-6 py-5 hover:bg-gray-200"
+                className="hidden sm:table-cell text-center px-6 py-5 hover:bg-gray-200 w-50"
               >
                 Max. Diskon
               </th>
-              <th
+              {/* <th
                 scope="col"
-                className="hidden sm:table-cell px-6 py-5 hover:bg-gray-200"
+                className="hidden sm:table-cell text-center px-6 py-5 hover:bg-gray-200"
               >
                 Tanggal Aktif
-              </th>
+              </th> */}
               <th
                 scope="col"
-                className="hidden sm:table-cell px-6 py-5 hover:bg-gray-200"
+                className="hidden sm:table-cell text-center px-6 py-5 hover:bg-gray-200"
               >
                 Aktif
               </th>
@@ -129,28 +153,45 @@ const DiscountPage = () => {
                   </td>
                   <td className="px-6 py-5 w-80 text-black dark:text-white">
                     <div>{discount.name}</div>
-
-                    <div className="flex justify-start items-center gap-1 text-xm text-gray-400">
-                      {discount?.discountType === "AMOUNT"
-                        ? formatCurrency(Number(discount?.discountValue))
-                        : `${discount?.discountValue}%`}
-                    </div>
                   </td>
-                  <td className="hidden sm:table-cell px-6 py-3">
-                    {discount.minTransaction
+                  <td className="px-6 py-5 w-40 text-black text-center dark:text-white">
+                    <div>{discount.code}</div>
+                  </td>
+                  <td className="px-6 py-5 w-10 text-center">
+                    {discount?.discountType === "AMOUNT"
                       ? formatCurrency(Number(discount?.discountValue))
+                      : `${discount?.discountValue}%`}
+                  </td>
+                  <td className="hidden sm:table-cell px-6 py-3 text-right">
+                    {discount.minTransaction
+                      ? formatCurrency(Number(discount?.minTransaction))
                       : "-"}
                   </td>
-                  <td className="hidden sm:table-cell px-6 py-3">
+                  <td className="hidden sm:table-cell px-6 py-3 text-right">
                     {discount.maxAmount
                       ? formatCurrency(Number(discount?.maxAmount))
                       : "-"}
                   </td>
-                  <td className="hidden sm:table-cell px-6 py-3">--</td>
-                  <td className="hidden sm:table-cell px-6 py-3">
-                    <Switch value={Number(discount.isActive)} />
+                  {/* <td className="hidden sm:table-cell px-6 py-3 text-center"></td> */}
+                  <td className="hidden sm:table-cell px-6 py-3 text-center">
+                    <Switch
+                      defaultChecked={
+                        discount.isActive ? discount.isActive : undefined
+                      }
+                      className="data-[state=checked]:bg-blue-600"
+                      onCheckedChange={(value) =>
+                        handleSwitch({
+                          isActive: value,
+                          id: String(discount.id),
+                        })
+                      }
+                    />
                   </td>
-                  <td className="hidden sm:table-cell px-6 py-3">-----</td>
+                  <td className="hidden sm:table-cell px-6 py-3">
+                    <Button>
+                      <LucideTrash />
+                    </Button>
+                  </td>
                 </tr>
               ))}
           </tbody>

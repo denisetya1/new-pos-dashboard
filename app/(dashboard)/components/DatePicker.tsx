@@ -19,7 +19,7 @@ export function DatePicker({
   displayFormat = "dd-MM-yyyy",
   disabled,
 }: {
-  selected?: Date;
+  selected?: Date | undefined;
   onSelect: (date: Date) => void;
   placeholder?: string;
   displayFormat?: string;
@@ -33,7 +33,7 @@ export function DatePicker({
         <Button
           variant="outline"
           data-empty={!selected}
-          className="w-53 justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
+          className="w-full justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
         >
           {selected ? (
             format(selected, displayFormat)

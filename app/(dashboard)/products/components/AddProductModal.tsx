@@ -57,7 +57,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useGetBarcode } from "@/hooks/useBarcode";
+import { useGenerateBarcode } from "@/hooks/useBarcode";
 import { useEffect } from "react";
 
 type Props = {
@@ -77,7 +77,7 @@ const AddProductForm = ({
 
   const { data: categories } = useGetCategories();
   const { data: brands } = useGetBrands();
-  const { data: barcode, mutate: getBarcode } = useGetBarcode();
+  const { data: barcode, mutate: generateBarcode } = useGenerateBarcode();
 
   const form = useForm<
     CreateProductFormInputValues,
@@ -102,7 +102,6 @@ const AddProductForm = ({
 
   useEffect(() => {
     if (barcode?.data) {
-      console.log("bbb", barcode.data);
       form.setValue("barcode", barcode.data);
     }
   }, [barcode]);
@@ -210,7 +209,7 @@ const AddProductForm = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Nama di Label Harga (maks. 35 karakter)
+                      Nama di Label Harga & Barcode (maks. 35 karakter)
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -313,7 +312,7 @@ const AddProductForm = ({
                                   variant={"ghost"}
                                   className="rounded-l-none border-l border-l-gray-200 bg-gray-100 text-gray-600"
                                   type="button"
-                                  onClick={() => getBarcode()}
+                                  onClick={() => generateBarcode()}
                                 >
                                   <LucideArrowLeftFromLine />
                                 </Button>
@@ -384,14 +383,16 @@ const AddProductForm = ({
                 render={({ field }) => (
                   <FormItem className="flex flex-row">
                     <FormLabel className="w-45">Tanggal</FormLabel>
-                    <FormControl>
-                      <DatePicker
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        placeholder="Pilih Tanggal Expired"
-                        disabled={{ before: new Date() }}
-                      />
-                    </FormControl>
+                    <div className="w-50">
+                      <FormControl>
+                        <DatePicker
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          placeholder="Pilih Tanggal Expired"
+                          disabled={{ before: new Date() }}
+                        />
+                      </FormControl>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}

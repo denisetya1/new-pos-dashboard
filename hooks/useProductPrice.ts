@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 
 export const useUpsertProductPrice = (productId: string) => {
-  const mutateProductStock = useMutation({
+  return useMutation({
     mutationKey: ["productStock"],
     mutationFn: ({
       cogs,
@@ -37,6 +37,4 @@ export const useUpsertProductPrice = (productId: string) => {
       });
     },
   });
-
-  return mutateProductStock;
 };

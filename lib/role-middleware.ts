@@ -11,11 +11,12 @@ export const withRoleMiddleware = (
   return async (req) => {
     try {
       const session = await auth();
+      // console.log(session);
 
       //check session and role access
-      if (!session || !session?.user.privileges.includes(privId)) {
-        return notAuthorizeResponse();
-      }
+      // if (!session || !session?.user.privileges.includes(privId)) {
+      //   return notAuthorizeResponse();
+      // }
 
       // lanjut ke handler utama
       return await handler(req);

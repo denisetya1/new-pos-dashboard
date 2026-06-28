@@ -14,7 +14,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import {
+  Loader2,
+  LucideArrowLeftFromLine,
+  LucideEdit2,
+  LucideEdit3,
+} from "lucide-react";
 import {
   Form,
   FormControl,
@@ -32,6 +37,18 @@ import { Product, Brand, Category } from "@/generated/prisma/client";
 import { HiOutlinePencil } from "react-icons/hi";
 import { useGetCategories } from "@/hooks/useCategories";
 import { useGetBrands } from "@/hooks/useBrands";
+import {
+  InputGroup,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useGenerateBarcode } from "@/hooks/useBarcode";
+import { useEffect } from "react";
 
 type Props = {
   product?: Product | null;
@@ -50,6 +67,7 @@ const AddEditProductForm = ({
 
   const { data: categories } = useGetCategories();
   const { data: brands } = useGetBrands();
+  const { data: barcode, mutate: generateBarcode } = useGenerateBarcode();
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -62,6 +80,12 @@ const AddEditProductForm = ({
       barcode: product?.barcode || "",
     },
   });
+
+  useEffect(() => {
+    if (barcode?.data) {
+      form.setValue("barcode", barcode.data);
+    }
+  }, [barcode]);
 
   // API mutation
   const mutation = useMutation({
@@ -111,6 +135,10 @@ const AddEditProductForm = ({
     mutation.mutate(values);
   };
 
+  function getBarcode(): void {
+    throw new Error("Function not implemented.");
+  }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -134,7 +162,7 @@ const AddEditProductForm = ({
             name="priceTagLabel"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nama di Label Harga</FormLabel>
+                <FormLabel>Nama di Label Harga & Barcode</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="Nama di label harga (opsional)"
@@ -208,25 +236,48 @@ const AddEditProductForm = ({
           <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
+              name="barcode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Barcode</FormLabel>
+                  <FormControl>
+                    <InputGroup>
+                      <InputGroupInput
+                        placeholder="Barcode (opsional)"
+                        {...field}
+                      />
+                      <InputGroupButton asChild className="bg-red-200 w-29">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant={"ghost"}
+                              className="rounded-l-none border-l border-l-gray-200 bg-gray-100 text-gray-600"
+                              type="button"
+                              onClick={() => generateBarcode()}
+                            >
+                              <LucideArrowLeftFromLine />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom">
+                            <p>Generate Barcode</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </InputGroupButton>
+                    </InputGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="sku"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>SKU</FormLabel>
                   <FormControl>
                     <Input placeholder="SKU (opsional)" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="barcode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Barcode</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Barcode (opsional)" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -269,17 +320,16 @@ const AddEditProductModal = ({
 
   return (
     <Modal
-      title={isEditMode ? "Edit Produk" : "Tambah Produk"}
+      title="Edit Produk"
       trigger={
-        <Button variant="default" size="sm">
-          {isEditMode ? (
-            <HiOutlinePencil className="h-4 w-4" />
-          ) : (
-            "Tambah Produk"
-          )}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full text-blue-600 flex justify-baseline"
+        >
+          <LucideEdit3 className="h-4 w-4 text-blue-600" /> Edit Produk
         </Button>
       }
-      tooltipText={isEditMode ? "Edit Produk" : "Tambah Produk Baru"}
     >
       <AddEditProductForm
         product={product}

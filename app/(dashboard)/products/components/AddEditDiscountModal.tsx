@@ -8,17 +8,20 @@ import { toast } from "react-toastify";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
 import {
   Loader2,
-  LucideArrowLeftFromLine,
-  LucideArrowLeftToLine,
-  LucideArrowRightToLine,
+  LucideBadgePercent,
+  LucideCalendarDays,
+  LucideDollarSign,
+  LucideHandCoins,
+  LucidePercent,
+  LucideShoppingCart,
+  LucideSquareSigma,
+  LucideTag,
 } from "lucide-react";
 import {
   Form,
@@ -31,27 +34,17 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Modal from "../../components/Modal";
-import {
-  DiscountFormOutputValues,
-  DiscountFormInputValues,
-  discountSchema,
-} from "@/schemas/discountSchecma";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Product, Brand, Category, Discount } from "@/generated/prisma/client";
-import { HiOutlinePencil } from "react-icons/hi";
-import { useGetCategories } from "@/hooks/useCategories";
-import { useGetBrands } from "@/hooks/useBrands";
+import { Discount } from "@/generated/prisma/client";
 
 import {
   InputGroup,
   InputGroupAddon,
-  InputGroupText,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import { NumericFormat } from "react-number-format";
+import { DiscountFormValues, discountSchema } from "@/schemas/discountSchecma";
+import { useCreateDiscount, useUpdateDiscount } from "@/hooks/useDiscounts";
 import { DatePicker } from "../../components/DatePicker";
-import { useCreateDiscount } from "@/hooks/useDiscounts";
-import { useEffect } from "react";
+import { NumericFormat } from "react-number-format";
 
 type Props = {
   discount?: Discount | null;
@@ -66,84 +59,71 @@ const AddEditDiscountForm = ({
   closeModal,
   onSuccess,
 }: Props) => {
-  const form = useForm<DiscountFormInputValues, any, DiscountFormOutputValues>({
+  const form = useForm<DiscountFormValues>({
     resolver: zodResolver(discountSchema),
     defaultValues: {
-      name: "",
-      code: "",
-      discountType: "PERCENT",
-      discountValue: "0",
-      minTransaction: "0",
-      maxDiscount: "0",
-      expiredDate: undefined,
+      name: discount?.name || "",
+      code: discount?.code || "",
+      discountType: discount?.discountType || "",
+      discountValue: Number(discount?.discountValue),
+      minTransaction: Number(discount?.minTransaction),
+      maxAmount: Number(discount?.maxAmount),
+      startDate: discount?.startDate || undefined,
+      endDate: discount?.endDate || undefined,
+      recommendation: discount?.recommendation || true,
     },
   });
 
-  const [discountType] = form.watch(["discountType"]);
+  const { mutate: createDiscount, isPending: isPendingCreate } =
+    useCreateDiscount();
 
-  // API mutation
-  const mutation = useMutation({
-    mutationFn: async (values: useCreateDiscount) => {
-      const url = isEditMode
-        ? `/api/dashboard/products/${product?.id}`
-        : "/api/dashboard/products";
+  const { mutate: updateDiscount, isPending: isPendingUpdate } =
+    useUpdateDiscount(String(discount?.id));
 
-      const method = isEditMode ? "PUT" : "POST";
+  const [startDate, discountType] = form.watch(["startDate", "discountType"]);
 
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-      });
-
-      if (!res.ok) {
-        throw new Error(
-          isEditMode ? "Gagal update produk" : "Gagal membuat produk",
+  const onSubmit = (values: DiscountFormValues) => {
+    const mutationOptions = {
+      onSuccess: (res: any) => {
+        if (res?.error) {
+          toast.error(res.error || "Gagal menyimpan diskon");
+          return;
+        }
+        toast.success(
+          isEditMode
+            ? "Diskon berhasil diperbarui!"
+            : "Diskon baru berhasil dibuat!",
         );
-      }
+        form.reset();
+        onSuccess?.(); // Memicu refresh data di halaman utama
+        closeModal?.(); // Otomatis tutup modal
+      },
+      onError: (error: any) => {
+        toast.error(error?.message || "Terjadi kesalahan pada server");
+      },
+    };
 
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      const msg = isEditMode
-        ? "Diskon berhasil diupdate"
-        : "Diskon berhasil dibuat";
-      toast.success(msg, {
-        position: "top-right",
-        theme: "light",
-      });
-      form.reset();
-      closeModal?.();
-      onSuccess?.();
-    },
-    onError: (error) => {
-      const msg = error instanceof Error ? error.message : "Terjadi kesalahan";
-      toast.error(msg, {
-        position: "top-right",
-        theme: "colored",
-      });
-    },
-  });
-
-  const onSubmit = (values: CreateProductFormOutputValues) => {
-    mutation.mutate(values);
+    if (isEditMode) {
+      updateDiscount(values, mutationOptions);
+    } else {
+      createDiscount(values, mutationOptions);
+    }
   };
 
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div className="flex-1 overflow-y-auto relative pb-20">
       <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-4 h-fit flex flex-col p-4 relative"
-        >
-          <div className="grid gap-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-0">
+          <div className="grid gap-4 overflow-y-auto w-full">
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Kode Diskon</FormLabel>
+                  <FormLabel>
+                    <LucideTag size={15} />
+                    Nama Diskon
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="Masukkan nama produk" {...field} />
                   </FormControl>
@@ -154,12 +134,14 @@ const AddEditDiscountForm = ({
 
             <FormField
               control={form.control}
-              name="name"
+              name="code"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nama Diskon</FormLabel>
+                  <FormLabel>
+                    <LucideSquareSigma size={16} /> Kode Voucher
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="Masukkan nama produk" {...field} />
+                    <Input {...field} maxLength={30} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -168,152 +150,186 @@ const AddEditDiscountForm = ({
 
             <FormField
               control={form.control}
-              name="categoryId"
+              name="discountType"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Tipe Diskon</FormLabel>
+                  <FormLabel>
+                    <LucidePercent size={16} />
+                    Tipe Diskon
+                  </FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl className="w-full">
+                    <FormControl>
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Pilih Tipe Diskon" />
+                        <SelectValue placeholder="Pilih kategori" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent className="w-full">
-                      <SelectGroup className="w-full">
-                        <SelectLabel>Pilih Tipe Diskon</SelectLabel>
-                        <SelectItem value="AMOUNT">Nominal</SelectItem>
-                        <SelectItem value="PERCENT">Persen</SelectItem>
-                      </SelectGroup>
+                    <SelectContent>
+                      <SelectItem value="PERCENT">Persen</SelectItem>
+                      <SelectItem value="AMOUNT">Nominal</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
-              name="cogs"
+              name="discountValue"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="w-45">Nilai Diskon</FormLabel>
-                  <div>
-                    <FormControl>
-                      <InputGroup className="w-40">
-                        <InputGroupAddon align="inline-end">
-                          <InputGroupText>Rp</InputGroupText>
-                        </InputGroupAddon>
-                        <NumericFormat
-                          value={String(field.value)}
-                          thousandSeparator="."
-                          decimalSeparator=","
-                          allowNegative={false}
-                          inputMode="numeric"
-                          customInput={InputGroupInput}
-                          getInputRef={field.ref}
-                          onValueChange={(values) => {
-                            field.onChange(values.value);
-                          }}
-                        />
-                      </InputGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </div>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="sellPrice"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="w-45">
-                    Minimal Total Transaksi
+                  <FormLabel>
+                    <LucideDollarSign size={16} />
+                    Nilai Diskon
                   </FormLabel>
-                  <div>
-                    <FormControl>
-                      <InputGroup className="w-40">
-                        <InputGroupAddon>
-                          <InputGroupText>Rp</InputGroupText>
-                        </InputGroupAddon>
-                        <NumericFormat
-                          value={String(field.value)}
-                          thousandSeparator="."
-                          decimalSeparator=","
-                          allowNegative={false}
-                          inputMode="numeric"
-                          customInput={InputGroupInput}
-                          getInputRef={field.ref}
-                          onValueChange={(values) => {
-                            field.onChange(values.value);
-                          }}
-                        />
-                      </InputGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </div>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="markupPercentage"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="w-45">Maksimal Diskon</FormLabel>
-                  <div>
-                    <FormControl>
-                      <InputGroup className="w-20">
-                        <NumericFormat
-                          value={String(field.value)}
-                          thousandSeparator="."
-                          decimalSeparator=","
-                          allowNegative={false}
-                          inputMode="numeric"
-                          customInput={InputGroupInput}
-                          getInputRef={field.ref}
-                          onValueChange={(values) => {
-                            field.onChange(values.value);
-                          }}
-                          isAllowed={({ floatValue }) =>
-                            floatValue === undefined ||
-                            (floatValue >= 0 && floatValue <= 200)
-                          }
-                        />
-                        <InputGroupAddon align="inline-end">
-                          <InputGroupText>%</InputGroupText>
-                        </InputGroupAddon>
-                      </InputGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </div>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="expiredDate"
-              render={({ field }) => (
-                <FormItem className="flex flex-row">
-                  <FormLabel className="w-45">Tanggal Aktif</FormLabel>
                   <FormControl>
-                    <DatePicker
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      placeholder="Pilih Tanggal Expired"
-                      disabled={{ before: new Date() }}
-                    />
+                    <InputGroup>
+                      {discountType === "AMOUNT" && (
+                        <InputGroupAddon>Rp</InputGroupAddon>
+                      )}
+                      <NumericFormat
+                        value={String(field.value)}
+                        thousandSeparator="."
+                        decimalSeparator=","
+                        allowNegative={false}
+                        inputMode="numeric"
+                        customInput={InputGroupInput}
+                        getInputRef={field.ref}
+                        onValueChange={(values) => {
+                          field.onChange(Number(values.value));
+                        }}
+                        isAllowed={({ floatValue }) =>
+                          floatValue === undefined ||
+                          (floatValue >= 0 &&
+                            discountType === "PERCENT" &&
+                            floatValue <= 99) ||
+                          (floatValue >= 0 &&
+                            discountType === "AMOUNT" &&
+                            floatValue <= 99999999)
+                        }
+                      />
+                      {discountType === "PERCENT" && (
+                        <InputGroupAddon>%</InputGroupAddon>
+                      )}
+                    </InputGroup>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="minTransaction"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    <LucideShoppingCart size={16} />
+                    Minimal Total Pesanan
+                  </FormLabel>
+                  <FormControl>
+                    <InputGroup>
+                      <InputGroupAddon>Rp</InputGroupAddon>
+                      <NumericFormat
+                        value={String(field.value)}
+                        thousandSeparator="."
+                        decimalSeparator=","
+                        allowNegative={false}
+                        inputMode="numeric"
+                        customInput={InputGroupInput}
+                        getInputRef={field.ref}
+                        onValueChange={(values) => {
+                          field.onChange(Number(values.value));
+                        }}
+                        isAllowed={({ floatValue }) =>
+                          floatValue === undefined ||
+                          (floatValue >= 0 && floatValue <= 99999999)
+                        }
+                      />
+                    </InputGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="maxAmount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    <LucideHandCoins size={16} />
+                    Maksimal Diskon
+                  </FormLabel>
+                  <FormControl>
+                    <InputGroup>
+                      <InputGroupAddon>Rp</InputGroupAddon>
+                      <NumericFormat
+                        value={String(field.value)}
+                        thousandSeparator="."
+                        decimalSeparator=","
+                        allowNegative={false}
+                        inputMode="numeric"
+                        customInput={InputGroupInput}
+                        getInputRef={field.ref}
+                        onValueChange={(values) => {
+                          field.onChange(Number(values.value));
+                        }}
+                        isAllowed={({ floatValue }) =>
+                          floatValue === undefined ||
+                          (floatValue >= 0 && floatValue <= 99999999)
+                        }
+                      />
+                    </InputGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="flex gap-10">
+              <FormField
+                control={form.control}
+                name="startDate"
+                render={({ field }) => (
+                  <FormItem className="w-1/2">
+                    <FormLabel>
+                      <LucideCalendarDays size={16} />
+                      Tanggal Mulai
+                    </FormLabel>
+                    <FormControl>
+                      <DatePicker
+                        onSelect={field.onChange}
+                        selected={field.value ? field.value : undefined}
+                        disabled={(date) => date < new Date()}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="endDate"
+                render={({ field }) => (
+                  <FormItem className="w-1/2">
+                    <FormLabel>
+                      <LucideCalendarDays size={16} />
+                      Tanggal Selesai
+                    </FormLabel>
+                    <FormControl>
+                      <DatePicker
+                        onSelect={field.onChange}
+                        selected={field.value ? field.value : undefined}
+                        disabled={(date) => !!startDate && date < startDate}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
 
-          <DialogFooter className="h-30 p-10 rounded-2xl bg-white flex justify-center items-center fixed bottom-0 left-0 right-0">
+          <DialogFooter className="fixed bottom-0 left-0 right-0 bg-white p-10 py-5">
             <Button
               type="button"
               variant="outline"
@@ -324,8 +340,8 @@ const AddEditDiscountForm = ({
             >
               Batal
             </Button>
-            <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending && (
+            <Button type="submit" disabled={isPendingCreate || isPendingUpdate}>
+              {(isPendingCreate || isPendingUpdate) && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
               {isEditMode ? "Update" : "Simpan"}
@@ -338,30 +354,25 @@ const AddEditDiscountForm = ({
 };
 
 const AddEditDiscountModal = ({
-  product,
+  discount,
   onSuccess,
 }: {
-  product?: Product | null;
+  discount?: Discount | null;
   onSuccess?: () => void;
 }) => {
-  const isEditMode = !!product;
+  const isEditMode = !!discount;
 
   return (
     <Modal
-      title={isEditMode ? "Edit Diskon" : "Tambah Diskon"}
+      title="Buat Diskon Baru"
       trigger={
-        <Button variant="default" size="sm">
-          {isEditMode ? (
-            <HiOutlinePencil className="h-4 w-4" />
-          ) : (
-            "Tambah Diskon"
-          )}
+        <Button size="sm">
+          <LucideBadgePercent className="h-4 w-4" /> Buat Diskon
         </Button>
       }
-      tooltipText={isEditMode ? "Edit Diskon" : "Tambah Diskon Baru"}
     >
       <AddEditDiscountForm
-        product={product}
+        discount={discount}
         isEditMode={isEditMode}
         onSuccess={onSuccess}
       />

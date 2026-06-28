@@ -9,18 +9,10 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { useSidebarToggle } from "@/stores/sidebarToggle";
-import {
-  PanelLeft,
-  Search,
-  Bell,
-  Menu,
-  Home,
-  Cuboid,
-  ScrollText,
-} from "lucide-react";
+import { PanelLeft, Menu } from "lucide-react";
 import MobileSidebar from "./components/MobileSidebar";
 import { useMobileSidebarToggle } from "@/stores/mobileSidebarToggle";
-import { NavItem, Navigation } from "./components/Navigation";
+import { Navigation } from "./components/Navigation";
 import Sidebar from "./components/Sidebar";
 import { SessionProvider } from "next-auth/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -29,41 +21,7 @@ import { Bounce, ToastContainer } from "react-toastify";
 import OutletInfo from "./components/OutletInfo";
 import { useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
-
-const menuConfig: NavItem[] = [
-  {
-    label: "Home",
-    icon: Home,
-    href: "/home",
-  },
-  {
-    label: "Manjemen Produk",
-    icon: Cuboid,
-    children: [
-      { label: "Daftar Produk", href: "/products" },
-      { label: "Stok & Harga", href: "/products/stocks" },
-      { label: "Cetak harga", href: "/products/print" },
-    ],
-  },
-  {
-    label: "Laporan",
-    icon: ScrollText,
-    children: [
-      { label: "Penjualan Offline", href: "/reports/sales/offline" },
-      { label: "Penjualan Online", href: "/reports/sales/online" },
-      { label: "Barang Terjual", href: "/reports/products/sold" },
-      { label: "Perpindahan Stok", href: "/reports/stocks/movement" },
-    ],
-  },
-  {
-    label: "Settings",
-    icon: ScrollText,
-    children: [
-      { label: "General", href: "/settings" },
-      { label: "Security", href: "/settings/security" },
-    ],
-  },
-];
+import { menuConfig } from "@/constants/menus";
 
 const queryClient = new QueryClient();
 
@@ -117,11 +75,7 @@ const Layout = ({
                     <OutletInfo onFinishLoading={() => setIsLoading(false)} />
                   </div>
 
-                  <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon">
-                      <Bell className="h-5 w-5" />
-                    </Button>
-
+                  <div className="hidden md:flex items-center gap-4 ">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Avatar className="cursor-pointer">

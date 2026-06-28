@@ -1,6 +1,11 @@
 "use client";
 
-import React, { cloneElement, isValidElement, useState } from "react";
+import React, {
+  cloneElement,
+  isValidElement,
+  useEffect,
+  useState,
+} from "react";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +18,6 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
-import { Button } from "@/components/ui/button";
 
 type ChildProps = {
   closeModal?: () => void;
@@ -24,11 +28,13 @@ const Modal = ({
   trigger,
   children,
   tooltipText,
+  onOpenChange,
 }: {
   title: React.ReactNode;
   trigger: React.ReactNode;
   children: React.ReactNode;
   tooltipText?: string;
+  onOpenChange?: (open: boolean) => void;
 }) => {
   const [open, setOpen] = useState(false);
 
@@ -37,6 +43,10 @@ const Modal = ({
         closeModal: () => setOpen(false),
       })
     : children;
+
+  useEffect(() => {
+    onOpenChange?.(open);
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

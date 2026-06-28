@@ -21,7 +21,7 @@ model User {
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime?     @updatedAt @map("updated_at")
   deletedAt     DateTime?     @map("deleted_at")
-  updateBy      String?       @default("") @map("update_by")
+  updatedBy     String?       @default("") @map("updated_by")
   isSubAccount  Boolean?      @map("is_sub_account")
   transactions  Transaction[]
   userOutlets   UserOutlet[]
@@ -39,7 +39,7 @@ model Role {
   createdAt   DateTime     @default(now()) @map("created_at")
   updatedAt   DateTime?    @updatedAt @map("updated_at")
   deletedAt   DateTime?    @map("deleted_at")
-  updateBy    String?      @default("") @map("updated_by")
+  updatedBy   String?      @default("") @map("updated_by")
   userOutlets UserOutlet[]
 
   @@map("roles")
@@ -51,7 +51,7 @@ model Province {
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
-  updateBy  String?   @default("") @map("updated_by")
+  updatedBy String?   @default("") @map("updated_by")
   cities    City[]
 
   @@map("provinces")
@@ -64,7 +64,7 @@ model City {
   createdAt  DateTime   @default(now()) @map("created_at")
   updatedAt  DateTime?  @updatedAt @map("updated_at")
   deletedAt  DateTime?  @map("deleted_at")
-  updateBy   String?    @default("") @map("updated_by")
+  updatedBy  String?    @default("") @map("updated_by")
   province   Province   @relation(fields: [provinceId], references: [id])
   districts  District[]
 
@@ -79,7 +79,7 @@ model District {
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime?     @updatedAt @map("updated_at")
   deletedAt    DateTime?     @map("deleted_at")
-  updateBy     String?       @default("") @map("updated_by")
+  updatedBy    String?       @default("") @map("updated_by")
   city         City          @relation(fields: [cityId], references: [id])
   subdistricts Subdistrict[]
 
@@ -94,7 +94,7 @@ model Subdistrict {
   createdAt  DateTime  @default(now()) @map("created_at")
   updatedAt  DateTime? @updatedAt @map("updated_at")
   deletedAt  DateTime? @map("deleted_at")
-  updateBy   String?   @default("") @map("updated_by")
+  updatedBy  String?   @default("") @map("updated_by")
   district   District  @relation(fields: [districtId], references: [id])
 
   @@index([districtId], map: "subdistricts_distric_id_fkey")
@@ -115,7 +115,7 @@ model Store {
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime?      @updatedAt @map("updated_at")
   deletedAt     DateTime?      @map("deleted_at")
-  updateBy      String?        @default("") @map("updated_by")
+  updatedBy     String?        @default("") @map("updated_by")
   Outlets       Outlet[]
   productStocks ProductStock[]
   products      Product[]
@@ -134,7 +134,7 @@ model Brand {
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime? @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
-  updateBy    String?   @default("") @map("updated_by")
+  updatedBy   String?   @default("") @map("updated_by")
   products    Product[]
 
   @@map("brands")
@@ -150,7 +150,7 @@ model Category {
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime? @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
-  updateBy    String?   @default("") @map("updated_by")
+  updatedBy   String?   @default("") @map("updated_by")
   products    Product[]
 
   @@map("categories")
@@ -172,7 +172,7 @@ model Product {
   createdAt            DateTime              @default(now()) @map("created_at")
   updatedAt            DateTime?             @updatedAt @map("updated_at")
   deletedAt            DateTime?             @map("deleted_at")
-  updateBy             String?               @default("") @map("updated_by")
+  updatedBy            String?               @default("") @map("updated_by")
   productType          String?               @default("PRODUCT") @map("product_type") @db.VarChar(100)
   stocks               ProductStock[]
   brand                Brand                 @relation(fields: [brandId], references: [id])
@@ -196,7 +196,7 @@ model Outlet {
   createdAt        DateTime       @default(now()) @map("created_at")
   updatedAt        DateTime?      @updatedAt @map("updated_at")
   deletedAt        DateTime?      @map("deleted_at")
-  updateBy         String?        @default("") @map("updated_by")
+  updatedBy        String?        @default("") @map("updated_by")
   address          String?
   phone            String?
   printExtraInfo   String?        @map("printExtraInfo")
@@ -229,7 +229,7 @@ model Suplier {
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
-  updateBy  String?   @default("") @map("updated_by")
+  updatedBy String?   @default("") @map("updated_by")
   store     Store     @relation(fields: [storeId], references: [id])
 
   @@index([storeId], map: "suppliers_store_id_fkey")
@@ -251,9 +251,9 @@ model ProductStock {
   createdAt          DateTime        @default(now()) @map("created_at")
   updatedAt          DateTime?       @updatedAt @map("updated_at")
   deletedAt          DateTime?       @map("deleted_at")
-  updateBy           String?         @default("") @map("updated_by")
+  updatedBy          String?         @default("") @map("updated_by")
   cogs               Decimal         @default(0.00) @db.Decimal(10, 2)
-  Outlet             Outlet          @relation(fields: [outletId], references: [id])
+  outlet             Outlet          @relation(fields: [outletId], references: [id])
   product            Product         @relation(fields: [productId], references: [id])
   store              Store           @relation(fields: [storeId], references: [id])
   stockMovements     StockMovement[]
@@ -273,7 +273,7 @@ model MoveType {
   createdAt      DateTime        @default(now()) @map("created_at")
   updatedAt      DateTime?       @updatedAt @map("updated_at")
   deletedAt      DateTime?       @map("deleted_at")
-  updateBy       String?         @default("") @map("updated_by")
+  updatedBy      String?         @default("") @map("updated_by")
   stockMovements StockMovement[]
 
   @@map("move_types")
@@ -295,7 +295,7 @@ model StockMovement {
   createdAt      DateTime      @default(now()) @map("created_at")
   updatedAt      DateTime?     @updatedAt @map("updated_at")
   deletedAt      DateTime?     @map("deleted_at")
-  updateBy       String?       @default("") @map("updated_by")
+  updatedBy      String?       @default("") @map("updated_by")
   expiredDateStr String?       @default("") @map("expired_date_str")
   expiredDate    DateTime?     @map("expired_date")
   soldOut        Boolean?      @map("sold_out")
@@ -319,7 +319,7 @@ model StockRequest {
   createdAt           DateTime              @default(now()) @map("created_at")
   updatedAt           DateTime?             @updatedAt @map("updated_at")
   deletedAt           DateTime?             @map("deleted_at")
-  updateBy            String?               @default("") @map("updated_by")
+  updatedBy           String?               @default("") @map("updated_by")
   products            StockRequestProduct[]
   destOutlet          Outlet                @relation("destOutlet", fields: [destinationOutletId], references: [id])
   reqOutlet           Outlet                @relation("reqOutlet", fields: [requestOutletId], references: [id])
@@ -338,7 +338,7 @@ model StockRequestProduct {
   createdAt      DateTime     @default(now()) @map("created_at")
   updatedAt      DateTime?    @updatedAt @map("updated_at")
   deletedAt      DateTime?    @map("deleted_at")
-  updateBy       String?      @default("") @map("updated_by")
+  updatedBy      String?      @default("") @map("updated_by")
   product        Product      @relation(fields: [productId], references: [id])
   stockRequest   StockRequest @relation(fields: [stockRequestId], references: [id])
 
@@ -357,7 +357,7 @@ model PaymentMethod {
   createdAt            DateTime              @default(now()) @map("created_at")
   updatedAt            DateTime?             @updatedAt @map("updated_at")
   deletedAt            DateTime?             @map("deleted_at")
-  updateBy             String?               @default("") @map("updated_by")
+  updatedBy            String?               @default("") @map("updated_by")
   OutletPaymentMethods OutletPaymentMethod[]
 
   @@map("payment_methods")
@@ -372,7 +372,7 @@ model OutletPaymentMethod {
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime?     @updatedAt @map("updated_at")
   deletedAt       DateTime?     @map("deleted_at")
-  updateBy        String?       @default("") @map("updated_by")
+  updatedBy       String?       @default("") @map("updated_by")
   paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id])
   transactions    Transaction[]
 
@@ -390,7 +390,7 @@ model UserOutlet {
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
-  updateBy  String?   @default("") @map("updated_by")
+  updatedBy String?   @default("") @map("updated_by")
   outlet    Outlet    @relation(fields: [outletId], references: [id])
   role      Role      @relation(fields: [roleId], references: [id])
   user      User      @relation(fields: [userId], references: [id])
@@ -411,7 +411,7 @@ model Shift {
   createdAt    DateTime    @default(now()) @map("created_at")
   updatedAt    DateTime?   @updatedAt @map("updated_at")
   deletedAt    DateTime?   @map("deleted_at")
-  updateBy     String?     @default("") @map("updated_by")
+  updatedBy    String?     @default("") @map("updated_by")
   outlet       Outlet      @relation(fields: [outletId], references: [id])
   userShifts   UserShift[]
 
@@ -430,7 +430,7 @@ model UserShift {
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime?     @updatedAt @map("updated_at")
   deletedAt     DateTime?     @map("deleted_at")
-  updateBy      String?       @default("") @map("updated_by")
+  updatedBy     String?       @default("") @map("updated_by")
   transactions  Transaction[]
   shift         Shift         @relation(fields: [shiftId], references: [id])
   user          User          @relation(fields: [userId], references: [id])
@@ -441,29 +441,31 @@ model UserShift {
 }
 
 model Transaction {
-  id                    String              @id @db.VarChar(25)
-  outletId              BigInt              @map("outlet_id")
-  storeId               BigInt              @map("store_id")
-  userId                String              @map("user_id")
-  userShiftId           BigInt              @map("user_shift_id")
-  totalItem             Int?                @map("total_item")
-  totalPrice            Decimal?            @map("total_price") @db.Decimal(10, 2)
-  totalDiscount         Decimal?            @map("total_discount") @db.Decimal(10, 2)
-  amountPaid            Decimal?            @map("amount_paid") @db.Decimal(10, 2)
-  amountChange          Decimal?            @map("amount_change") @db.Decimal(10, 2)
-  outletPaymentMethodId BigInt              @map("outlet_payment_method_id")
-  cardNumber            String?             @map("card_number")
-  confirmNumber         String?             @map("confirm_number")
-  transactionTime       DateTime            @map("transaction_time")
-  createdAt             DateTime            @default(now()) @map("created_at")
-  updatedAt             DateTime?           @updatedAt @map("updated_at")
-  deletedAt             DateTime?           @map("deleted_at")
-  updateBy              String?             @default("") @map("updated_by")
+  id                    String                @id @db.VarChar(25)
+  outletId              BigInt                @map("outlet_id")
+  storeId               BigInt                @map("store_id")
+  userId                String                @map("user_id")
+  userShiftId           BigInt                @map("user_shift_id")
+  totalItem             Int?                  @map("total_item")
+  totalPrice            Decimal?              @map("total_price") @db.Decimal(10, 2)
+  totalDiscount         Decimal?              @map("total_discount") @db.Decimal(10, 2)
+  amountPaid            Decimal?              @map("amount_paid") @db.Decimal(10, 2)
+  amountChange          Decimal?              @map("amount_change") @db.Decimal(10, 2)
+  outletPaymentMethodId BigInt                @map("outlet_payment_method_id")
+  cardNumber            String?               @map("card_number")
+  confirmNumber         String?               @map("confirm_number")
+  transactionTime       DateTime              @map("transaction_time")
+  createdAt             DateTime              @default(now()) @map("created_at")
+  updatedAt             DateTime?             @updatedAt @map("updated_at")
+  deletedAt             DateTime?             @map("deleted_at")
+  updatedBy             String?               @default("") @map("updated_by")
+  subTotal              Decimal?              @map("sub_total") @db.Decimal(10, 2)
   transactionDetails    TransactionDetail[]
-  outlet                Outlet              @relation(fields: [outletId], references: [id])
-  outletPaymentMethod   OutletPaymentMethod @relation(fields: [outletPaymentMethodId], references: [id])
-  user                  User                @relation(fields: [userId], references: [id])
-  userShift             UserShift           @relation(fields: [userShiftId], references: [id])
+  transactionDiscounts  TransactionDiscount[]
+  outlet                Outlet                @relation(fields: [outletId], references: [id])
+  outletPaymentMethod   OutletPaymentMethod   @relation(fields: [outletPaymentMethodId], references: [id])
+  user                  User                  @relation(fields: [userId], references: [id])
+  userShift             UserShift             @relation(fields: [userShiftId], references: [id])
 
   @@index([outletId], map: "transactions_outlet_id_fkey")
   @@index([outletPaymentMethodId], map: "transactions_outlet_payment_method_id_fkey")
@@ -492,7 +494,7 @@ model TransactionDetail {
   createdAt          DateTime           @default(now()) @map("created_at")
   updatedAt          DateTime?          @updatedAt @map("updated_at")
   deletedAt          DateTime?          @map("deleted_at")
-  updateBy           String?            @default("") @map("updated_by")
+  updatedBy          String?            @default("") @map("updated_by")
   productStockId     BigInt             @map("product_stock_id")
   transaction        Transaction        @relation(fields: [transactionId], references: [id])
 
@@ -510,7 +512,7 @@ model Device {
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime? @updatedAt @map("updated_at")
   deletedAt        DateTime? @map("deleted_at")
-  updateBy         String?   @default("") @map("updated_by")
+  updatedBy        String?   @default("") @map("updated_by")
   storeId          BigInt    @map("store_id")
   deviceName       String?   @map("device_name")
   deviceType       Int?      @map("device_type")
@@ -530,7 +532,7 @@ model RequestEditTransaction {
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime? @updatedAt @map("updated_at")
   deletedAt     DateTime? @map("deleted_at")
-  updateBy      String?   @default("") @map("updated_by")
+  updatedBy     String?   @default("") @map("updated_by")
 
   @@unique([transactionId, code])
   @@map("request_edit_transactions")
@@ -543,7 +545,7 @@ model TestTransaction {
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime? @updatedAt @map("updated_at")
   deletedAt     DateTime? @map("deleted_at")
-  updateBy      String?   @default("") @map("updated_by")
+  updatedBy     String?   @default("") @map("updated_by")
 }
 
 model Barcode {
@@ -568,13 +570,34 @@ model Discount {
   code           String?                 @map("code") @db.VarChar(100)
   minTransaction Decimal?                @map("min_transaction") @db.Decimal(10, 2)
   maxAmount      Decimal?                @map("max_amount") @db.Decimal(10, 2)
-  created_by     String?                 @map("created_by") @db.VarChar(100)
+  createdy       String?                 @map("created_by") @db.VarChar(100)
   discountValue  Decimal?                @default(0.00) @map("discount_value") @db.Decimal(10, 2)
   recommendation Boolean?                @default(true)
+  startDate     DateTime?               @db.Date @map("start_date")
+  endDate       DateTime?               @db.Date @map("end_date")
+  quota          Int?
   outlets        Outlet?                 @relation(fields: [outletId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "discounts_outlets_FK")
 
   @@index([outletId], map: "discounts_outlets_FK")
   @@map("discounts")
+}
+
+model TransactionDiscount {
+  id             BigInt      @id @default(autoincrement())
+  transactionId  String      @map("transaction_id") @db.VarChar(255)
+  discountId     BigInt?     @map("discount_id")
+  name           String?     @map("name") @db.VarChar(100)
+  code           String?     @map("code") @db.VarChar(100)
+  discountType   String?     @map("discount_type") @db.VarChar(100)
+  discountValue  Decimal?    @map("discount_value") @db.Decimal(10, 2)
+  minTransaction Decimal?    @map("min_transaction") @db.Decimal(10, 2)
+  maxAmount      Decimal?    @map("max_amount") @db.Decimal(10, 2)
+  isActive       Boolean?    @map("is_active")
+  recommendation Boolean?
+  transactions   Transaction @relation(fields: [transactionId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "transaction_discounts_transactions_FK")
+
+  @@index([transactionId], map: "transaction_discounts_transactions_FK")
+  @@map("transaction_discounts")
 }
 
 enum DirectionEnum {

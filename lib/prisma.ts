@@ -52,12 +52,18 @@ const prisma = new PrismaClient({ adapter }).$extends({
   },
   query: {
     $allModels: {
-      async $allOperations({ args, query, operation }) {
-        if (
-          operation === "findMany" ||
-          operation === "findFirst" ||
-          operation === "findUnique"
-        ) {
+      async $allOperations({ model, args, query, operation }): Promise<any> {
+        // 💡 Jika operasinya findUnique, belokkan ke findFirst agar mau menerima filter deletedAt
+        if (operation === "findUnique") {
+          return (prisma as any)[model].findFirst({
+            where: {
+              ...args.where,
+              deletedAt: null,
+            },
+          });
+        }
+
+        if (operation === "findMany" || operation === "findFirst") {
           args.where = {
             ...args.where,
             deletedAt: null,

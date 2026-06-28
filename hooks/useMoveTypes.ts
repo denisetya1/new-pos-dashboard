@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 export const useGetMoveTypes = (direction: string) => {
-  const queryMovements = useQuery({
+  return useQuery({
     queryKey: ["movetypes", direction],
     queryFn: () => {
       return fetch(
@@ -9,6 +9,4 @@ export const useGetMoveTypes = (direction: string) => {
       ).then((res) => res.json());
     },
   });
-
-  return queryMovements;
 };

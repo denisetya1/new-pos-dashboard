@@ -19,9 +19,8 @@ import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { useGetBrands } from "@/hooks/useBrands";
 import { useGetCategories } from "@/hooks/useCategories";
-import { useGetOutlets } from "@/hooks/useOutlets";
 
-const SearchForm = ({
+const SearchProductForm = ({
   selectedCategory,
   selectedBrand,
   searchProduct,
@@ -191,4 +190,4 @@ const SearchForm = ({
   );
 };
 
-export default SearchForm;
+export default SearchProductForm;

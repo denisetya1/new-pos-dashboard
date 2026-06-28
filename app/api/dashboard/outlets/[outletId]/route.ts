@@ -9,6 +9,8 @@ export const GET = async (
   const { outletId } = await params;
   const session = await auth();
 
+  // console.log(outletId);
+
   const outlet = await prisma.outlet.findFirst({
     where: {
       id: Number(outletId),

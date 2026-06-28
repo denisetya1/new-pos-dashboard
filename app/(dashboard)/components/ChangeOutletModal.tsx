@@ -2,7 +2,7 @@ import { useGetOutlets } from "@/hooks/useOutlets";
 import Modal from "./Modal";
 import { Button } from "@/components/ui/button";
 import { Outlet } from "@/generated/prisma/client";
-import { CheckCheck, CheckCircle } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import { DialogTrigger } from "@/components/ui/dialog";
 import {
   Tooltip,
@@ -20,10 +20,9 @@ const ChangeOutletForm = ({
   outletId: string;
   onSuccess?: () => void;
 }) => {
-  const router = useRouter();
-  const { isPending, isSuccess, data: outletsData } = useGetOutlets();
+  const { data: outletsData } = useGetOutlets();
   const { data: outlets } = outletsData || {};
-  const { update, status } = useSession();
+  const { update } = useSession();
 
   const handleChangeOutlet = async (id: string) => {
     try {
@@ -60,7 +59,7 @@ const ChangeOutletForm = ({
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <DialogTrigger asChild>
-                        <CheckCircle />
+                        <CheckCircle className="text-blue-600" />
                       </DialogTrigger>
                     </TooltipTrigger>
                     <TooltipContent side="bottom">

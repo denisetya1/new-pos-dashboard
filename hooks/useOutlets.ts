@@ -1,33 +1,29 @@
 import { useQuery } from "@tanstack/react-query";
 
 export const useGetOutlet = (outletId: string | undefined) => {
-  const queryOutlet = useQuery({
+  return useQuery({
     queryKey: ["outlet", outletId],
-    queryFn: () => {
-      return fetch(`/api/dashboard/outlets/${outletId}`).then(async (res) => {
-        try {
-          const resJson = await res.json();
-          console.log("sss", resJson);
-          if (!res.ok) {
-            throw resJson;
-          }
-          return resJson;
-        } catch (e) {}
-      });
-    },
-    enabled: !!outletId,
-  });
+    queryFn: async () => {
+      if (!outletId) throw new Error("Outlet ID is required");
 
-  return queryOutlet;
+      const res = await fetch(`/api/dashboard/outlets/${outletId}`);
+      const resJson = await res.json();
+
+      if (!res.ok) {
+        throw new Error(resJson.message || "Failed to fetch outlet data");
+      }
+
+      return resJson; // Pastikan selalu me-return data sukses
+    },
+    enabled: !!outletId && outletId !== "undefined",
+  });
 };
 
 export const useGetOutlets = () => {
-  const queryOutlets = useQuery({
+  return useQuery({
     queryKey: ["outlets"],
     queryFn: () => {
       return fetch("/api/dashboard/filters/outlets").then((res) => res.json());
     },
   });
-
-  return queryOutlets;
 };

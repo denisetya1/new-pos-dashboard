@@ -116,36 +116,36 @@ const _GET = async (req: NextRequest) => {
 export const GET = withRoleMiddleware(_GET, "1");
 
 export const POST = async (request: Request) => {
-  const session = await auth();
-  const body = await request.json();
-  const storeId = Number(session?.user.storeId);
-  const outletId = Number(session?.user.outletId);
+  try {
+    const session = await auth();
+    const body = await request.json();
+    const storeId = Number(session?.user.storeId);
+    const outletId = Number(session?.user.outletId);
 
-  const product = await prisma.product.create({
-    data: {
-      name: body.name,
-      description: body.description,
-      priceTagLabel: body.priceTagLabel,
-      categoryId: body.categoryId,
-      brandId: body.brandId,
-      sku: body.sku,
-      barcode: body.barcode,
-      isActive: true,
-      storeId: storeId,
-    },
-  });
-
-  if (product) {
-    //SAVE STOCK AND PRICE
-    const direction = "IN";
-    const moveTypeId = 2; //RESTOCK
     const moveDateStr = format(new Date(), "yyyy-MM-dd");
     const expiredDateStr = body.expiredDate
-      ? format(body.expiredDate, "yyyy-MM-dd")
+      ? format(new Date(body.expiredDate), "yyyy-MM-dd")
       : "";
 
-    try {
-      await prisma.productStock.create({
+    // 💡use $transaction
+    const result = await prisma.$transaction(async (tx) => {
+      const product = await tx.product.create({
+        data: {
+          name: body.name,
+          description: body.description,
+          priceTagLabel: body.priceTagLabel,
+          categoryId: body.categoryId,
+          brandId: body.brandId,
+          sku: body.sku,
+          barcode: body.barcode,
+          isActive: true,
+          storeId: storeId,
+          updatedBy: session?.user.username,
+        },
+      });
+
+      // Simpan Stok, Harga, sekaligus Riwayat Pergerakan Stok (Nested Create)
+      const productStock = await tx.productStock.create({
         data: {
           storeId: storeId,
           productId: product.id,
@@ -158,40 +158,40 @@ export const POST = async (request: Request) => {
           discountPercentage: Number(body.discountPercentage),
           isActive: true,
           cogs: Number(body.cogs),
+          updatedBy: session?.user.username,
           stockMovements: {
             create: {
               moveDate: dateUTC(moveDateStr),
               moveDateStr: moveDateStr,
               expiredDate: expiredDateStr ? dateUTC(expiredDateStr) : null,
               expiredDateStr: expiredDateStr ? expiredDateStr : null,
-              moveTypeId: Number(moveTypeId),
-              direction: direction,
+              moveTypeId: 2, // RESTOCK
+              direction: "IN",
               startQuantity: 0,
               quantity: Number(body.quantity),
               cogs: Number(body.cogs),
               endQuantity: Number(body.quantity),
               description: "Input Product & Stok Awal",
+              updatedBy: session?.user.username,
             },
           },
         },
       });
-    } catch (e: any) {
-      console.log(e.message);
-      //revert delete product
-      await prisma.product.delete({
-        where: {
-          id: product.id,
-          storeId: storeId,
-        },
-      });
-      await prisma.productStock.delete({
-        where: {
-          id: product.id,
-          outletId: outletId,
-        },
-      });
-    }
-  }
 
-  return NextResponse.json(product);
+      return { product, productStock };
+    });
+
+    return buildResponse(result);
+  } catch (error: any) {
+    console.error("TRANSACTION_FAILED:", error.message);
+
+    // database otomatis melakukan ROLLBACK. Produk tidak akan pernah terbuat.
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: "Gagal menyimpan produk dan stok",
+      }),
+      { status: 500 },
+    );
+  }
 };

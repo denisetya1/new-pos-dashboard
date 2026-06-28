@@ -3,18 +3,19 @@
 import { DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import Modal from "../../components/Modal";
-import { HiTrash } from "react-icons/hi";
 import { useMutation } from "@tanstack/react-query";
 import { Spinner } from "@/components/ui/spinner";
 import { Badge } from "@/components/ui/badge";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
+import { LucideTrash2 } from "lucide-react";
 
 type DeleteProduct = {
   onSuccess?: () => void;
   onCancel?: () => void;
   deletedProductName?: string;
   productId: string;
+  closeModal?: () => void;
 };
 
 const ConfirmDeleteProduct = ({
@@ -22,6 +23,7 @@ const ConfirmDeleteProduct = ({
   onCancel,
   deletedProductName,
   productId,
+  closeModal,
 }: DeleteProduct) => {
   const {
     isPending,
@@ -57,7 +59,9 @@ const ConfirmDeleteProduct = ({
   return (
     <div>
       <div className="py-4 pb-10">
-        Yakin akan menghapus <strong>{deletedProductName}</strong>?
+        Yakin akan menghapus <strong>"{deletedProductName}"</strong>?
+        <br />
+        Fungsi ini akan menghapus produk di semua cabang.
       </div>
 
       <DialogFooter>
@@ -75,6 +79,7 @@ const ConfirmDeleteProduct = ({
               variant="outline"
               onClick={() => {
                 onCancel?.();
+                closeModal?.();
               }}
             >
               Tidak
@@ -92,19 +97,25 @@ const ConfirmDeleteProduct = ({
 const DeleteProductModal = ({
   deletedProductName,
   productId,
+  onOpenChange,
 }: {
   deletedProductName: string;
   productId: string;
+  onOpenChange?: (open: boolean) => void;
 }) => {
   return (
     <Modal
       title="Hapus Produk"
       trigger={
-        <Button variant="outline">
-          <HiTrash className="text-primary-600 text-red-400" />
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full text-red-400 flex justify-baseline"
+        >
+          <LucideTrash2 className="text-red-400" /> Hapus Produk
         </Button>
       }
-      tooltipText="Hapus Produk"
+      onOpenChange={onOpenChange}
     >
       <ConfirmDeleteProduct
         deletedProductName={deletedProductName}

@@ -59,7 +59,7 @@ const EditPriceForm = ({
     },
   });
 
-  const watchVal = form.watch([
+  const [sellPrice, markupPercentage, discountPercentage, cogs] = form.watch([
     "sellPrice",
     "markupPercentage",
     "discountPercentage",
@@ -67,20 +67,20 @@ const EditPriceForm = ({
   ]);
 
   const priceAfterMarkup = getFinalPrice(
-    Number(watchVal[0]),
-    Number(watchVal[1]),
+    Number(sellPrice),
+    Number(markupPercentage),
     0,
     true,
   );
 
   const finalPrice = getFinalPrice(
-    Number(watchVal[0]),
-    Number(watchVal[1]),
-    Number(watchVal[2]),
+    Number(sellPrice),
+    Number(markupPercentage),
+    Number(discountPercentage),
     true,
   );
 
-  const profit = Number(finalPrice) - Number(watchVal[3]);
+  const profit = Number(finalPrice) - Number(cogs);
 
   const profitPercentage = ((profit / Number(finalPrice)) * 100).toFixed(2);
 
@@ -153,7 +153,7 @@ const EditPriceForm = ({
           name="sellPrice"
           render={({ field }) => (
             <FormItem className="flex flex-row">
-              <FormLabel className="w-30">Harga Jual Dasar</FormLabel>
+              <FormLabel className="w-30">Harga Jual</FormLabel>
               <div>
                 <FormControl>
                   <InputGroup className="w-40">
@@ -260,7 +260,7 @@ const EditPriceForm = ({
             <div>{formatCurrency(Number(finalPrice))}</div>
           </div>
         </div>
-        {Number(watchVal[3]) > 0 && (
+        {Number(cogs) > 0 && (
           <div className="flex justify-between">
             <div>Potensi Keuntungan: </div>
             <div

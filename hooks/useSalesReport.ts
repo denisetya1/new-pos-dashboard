@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 export const useGetSalesReport = (qs: String) => {
-  const queryBrands = useQuery({
+  return useQuery({
     queryKey: ["salesReport", qs],
     queryFn: () => {
       return fetch(
@@ -9,6 +9,4 @@ export const useGetSalesReport = (qs: String) => {
       ).then((res) => res.json());
     },
   });
-
-  return queryBrands;
 };

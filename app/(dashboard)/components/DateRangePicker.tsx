@@ -14,15 +14,37 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-export function DateRangePicker() {
-  const [date, setDate] = React.useState<DateRange | undefined>({
-    from: new Date(),
-    to: addDays(new Date(), 7),
-  });
+export const DateRangePicker = ({
+  selectedDate,
+  onSelect,
+  numberOfMonths = 1,
+}: {
+  selectedDate: DateRange | undefined;
+  onSelect: (date: DateRange | undefined) => void;
+  numberOfMonths: number;
+}) => {
+  const [date, setDate] = React.useState<DateRange | undefined>(selectedDate);
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  const handleSelect = (range: DateRange | undefined, selectedDay: Date) => {
+    // Jika rentang sebelumnya sudah lengkap, reset seleksi lama
+    if (date?.from && date?.to) {
+      const nextRange = { from: selectedDay, to: undefined };
+      setDate(nextRange); // 💡 Teruskan tanggal awal baru ke atas
+      return;
+    }
+
+    // Tutup popover jika rentang yang baru sudah lengkap
+    if (range?.from && range?.to) {
+      onSelect(range); // 💡 Teruskan rentang normal ke atas
+      setDate(range);
+      setIsOpen(false);
+    }
+  };
 
   return (
     <div className="grid gap-2">
-      <Popover>
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <Button
             id="date"
@@ -54,12 +76,12 @@ export function DateRangePicker() {
             autoFocus
             mode="range"
             defaultMonth={date?.from}
-            selected={date}
-            onSelect={setDate}
-            numberOfMonths={2}
+            selected={date} // 💡 Sinkronkan visual dengan data dari atas
+            onSelect={(range, selectedDay) => handleSelect(range, selectedDay)}
+            numberOfMonths={numberOfMonths}
           />
         </PopoverContent>
       </Popover>
     </div>
   );
-}
+};

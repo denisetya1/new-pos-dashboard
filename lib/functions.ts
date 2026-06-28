@@ -1,3 +1,13 @@
+export const formatCompactCurrency = (value: number) => {
+  // Gunakan Intl.NumberFormat dengan opsi notation: "compact"
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    notation: "compact",
+    maximumFractionDigits: 1, // Menampilkan 1 angka di belakang koma jika desimal (misal: Rp 1,5 jt)
+  }).format(value);
+};
+
 export const formatCurrency = (num: number | undefined | null): string => {
   if (num === undefined || num === null) {
     num = 0;
@@ -69,4 +79,20 @@ export const dateUTC = (dateString: string) => {
   return new Date(
     Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
   );
+};
+
+export const calculateGrowth = (current: number, previous: number) => {
+  const variance = current - previous;
+  // Jika periode lalu 0 dan sekarang ada penjualan, dianggap tumbuh 100%. Jika dua-duanya 0, maka 0%.
+  const percentage =
+    previous === 0
+      ? current > 0
+        ? 100
+        : 0
+      : Math.round((variance / previous) * 100 * 100) / 100; // Pembulatan 2 angka di belakang koma
+
+  return {
+    variance,
+    percentage,
+  };
 };

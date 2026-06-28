@@ -41,7 +41,7 @@ function SelectTrigger({
   onReset?: () => void;
 }) {
   return (
-    <div className="relative flex w-fit gap-2 justify-between">
+    <div className="relative flex gap-2 justify-between">
       <SelectPrimitive.Trigger
         data-slot="select-trigger"
         data-size={size}

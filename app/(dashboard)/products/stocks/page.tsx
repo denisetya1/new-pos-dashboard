@@ -1,22 +1,32 @@
 "use client";
 import { Card } from "@/components/ui/card";
 import SortableHeader from "../../components/SortableHeader";
-import SearchForm from "../components/SearchForm";
+import SearchProductForm from "../components/SearchProductForm";
 import { useSearchParams } from "next/navigation";
 import queryString from "query-string";
 import LoadingContent from "../../components/LoadingContent";
 import TablePagination from "../../components/TablePagination";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useGetProductStocks } from "@/hooks/useProductStocks";
 import StockMovementModal from "../components/StockMovementModal";
-import { BarcodeIcon } from "lucide-react";
+import { BarcodeIcon, MoreVertical } from "lucide-react";
 import { formatCurrency, getFinalPrice } from "@/lib/functions";
 import EditPriceFormModal from "../components/EditPriceModal";
 import { useSession } from "next-auth/react";
 import { ProductWithStocks } from "@/types/product";
 import StockMovementHistoryModal from "../components/StockMovementHistoryModal";
 import AddProductModal from "../components/AddProductModal";
+import AddEditProductModal from "../components/EditProductModal";
+import DeleteProductModal from "../components/DeleteProductModal";
+import PrintBarcodeModal from "../components/PrintBarcodeModal";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const PriceStockPage = () => {
   const { data: session } = useSession();
@@ -53,6 +63,16 @@ const PriceStockPage = () => {
     }
   }, [isError]);
 
+  const handleActionSelect = (e: Event) => {
+    e.preventDefault();
+
+    const dropdown = (e.currentTarget as HTMLElement).closest('[role="menu"]');
+
+    if (dropdown) {
+      (dropdown as HTMLElement).style.display = "none";
+    }
+  };
+
   return (
     <div>
       <h2 className="font-bold text-2xl capitalize mb-10">
@@ -64,7 +84,7 @@ const PriceStockPage = () => {
       </div>
 
       <div className="mb-10">
-        <SearchForm
+        <SearchProductForm
           selectedCategory={categoryId}
           selectedBrand={brandId}
           searchProduct={search}
@@ -122,6 +142,9 @@ const PriceStockPage = () => {
               </th>
               <th scope="col" className="px-6 py-5">
                 Stok
+              </th>
+              <th scope="col" className="px-6 py-5">
+                Aksi
               </th>
             </tr>
           </thead>
@@ -210,18 +233,16 @@ const PriceStockPage = () => {
                     <div className="flex justify-center items-center gap-2">
                       <div className="flex justify-center items-center">
                         <div className="border border-gray-200 rounded-l-lg overflow-hidden">
-                          {
-                            <StockMovementModal
-                              direction="OUT"
-                              product={product}
-                              outletId={String(outletId)}
-                              disabled={
-                                product.stocks[0]?.quantity === undefined ||
-                                product.stocks[0]?.quantity === 0
-                              }
-                              onSuccess={refetch}
-                            />
-                          }
+                          <StockMovementModal
+                            direction="OUT"
+                            product={product}
+                            outletId={String(outletId)}
+                            disabled={
+                              product.stocks[0]?.quantity === undefined ||
+                              product.stocks[0]?.quantity === 0
+                            }
+                            onSuccess={refetch}
+                          />
                         </div>
                         <div className="px-2 py-2 w-15 border border-gray-200 text-center">
                           {product.stocks.length > 0
@@ -238,13 +259,69 @@ const PriceStockPage = () => {
                           />
                         </div>
                       </div>
-                      <div>
-                        <StockMovementHistoryModal
-                          product={product}
-                          outletId={String(outletId)}
-                        />
-                      </div>
                     </div>
+                  </td>
+                  <td className="sm:table-cell px-6 py-3">
+                    <DropdownMenu>
+                      {/* 💡 Pemicu Dropdown */}
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 p-0"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                          <span className="sr-only">Open menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+
+                      {/* 💡 Konten Menu dengan Pencegah Close Otomatis */}
+                      <DropdownMenuContent className="w-40 p-1" align="end">
+                        {/* Menu Riwayat */}
+                        <DropdownMenuItem
+                          onSelect={handleActionSelect}
+                          className="p-0"
+                        >
+                          <StockMovementHistoryModal
+                            product={product}
+                            outletId={String(outletId)}
+                          />
+                        </DropdownMenuItem>
+
+                        {/* Menu Barcode */}
+                        <DropdownMenuItem
+                          onSelect={handleActionSelect}
+                          className="p-0"
+                        >
+                          <PrintBarcodeModal
+                            deletedProductName={product.name}
+                            product={product}
+                          />
+                        </DropdownMenuItem>
+
+                        {/* Menu Edit */}
+                        <DropdownMenuItem
+                          onSelect={handleActionSelect}
+                          className="p-0"
+                        >
+                          <AddEditProductModal
+                            product={product}
+                            onSuccess={refetch}
+                          />
+                        </DropdownMenuItem>
+
+                        {/* Menu Delete */}
+                        <DropdownMenuItem
+                          onSelect={handleActionSelect}
+                          className="p-0"
+                        >
+                          <DeleteProductModal
+                            productId={String(product.id)}
+                            deletedProductName={product.name}
+                          />
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </td>
                 </tr>
               ))}
