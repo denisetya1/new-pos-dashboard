@@ -52,7 +52,7 @@ export const GET = async (req: NextRequest) => {
     const productsStocks = await prisma.productStock.findManyAndCount({
       where: {
         AND: [
-          { storeId: 1 },
+          { storeId: Number(session?.user.storeId) },
           {
             ...(brandId !== "" && brandId !== undefined && brandId !== null
               ? { product: { brandId: Number(brandId) } }
@@ -115,7 +115,7 @@ export const GET = async (req: NextRequest) => {
   const products = await prisma.product.findManyAndCount({
     where: {
       AND: [
-        { storeId: 1 },
+        { storeId: Number(session?.user.storeId) },
         {
           ...(brandId !== "" && brandId !== undefined && brandId !== null
             ? { brandId: Number(brandId) }

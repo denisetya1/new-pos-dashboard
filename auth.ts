@@ -50,7 +50,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 role: {
                   select: {
                     id: true,
-                    privileges: true,
+                    // privileges: true,
                   },
                 },
               },
@@ -58,7 +58,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
             roleId = userAccess?.role.id;
             outletId = userAccess?.outletId;
-            privileges = userAccess?.role.privileges;
+            // privileges = userAccess?.role.privileges;
           } else {
             const outlet = await prisma.outlet.findFirst({
               where: {
@@ -77,7 +77,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             });
 
             roleId = role?.id;
-            privileges = role?.privileges;
+            // privileges = role?.privileges;
             outletId = outlet?.id;
           }
 

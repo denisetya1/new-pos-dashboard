@@ -8,9 +8,9 @@ declare module "next-auth" {
     emailVerified: Date | null;
     image: string | null;
     phone: string | null;
-    storeId: BigInt | null;
-    outletId?: BigInt;
-    roleId: BigInt;
+    storeId: bigint | undefied;
+    outletId?: bigint | undefied;
+    roleId: bigint | undefied;
     privileges:
       | string
       | number
@@ -22,10 +22,10 @@ declare module "next-auth" {
     isSubAccount: boolean | null;
     isActive: boolean;
     lastLogin: Date | null;
-    createdAt: Date;
-    updatedAt: Date | null;
-    deletedAt: Date | null;
-    updateBy: string | null;
+    createdAt?: Date;
+    updatedAt?: Date | null;
+    deletedAt?: Date | null;
+    updateBy?: string | null;
   }
 
   interface Session {

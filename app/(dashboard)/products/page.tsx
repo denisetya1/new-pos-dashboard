@@ -1,5 +1,5 @@
 "use client";
-import { Card } from "@/components/ui/card";\\
+import { Card } from "@/components/ui/card";
 import SortableHeader from "../components/SortableHeader";
 import SearchForm from "./components/SearchProductForm";
 import { useSearchParams } from "next/navigation";

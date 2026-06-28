@@ -5,7 +5,7 @@ import { format } from "date-fns";
 
 export const POST = async (
   req: Request,
-  { params }: { params: Promise<{ productId: string; outletId: string }> },
+  { params }: { params: Promise<{ productId: string }> },
 ) => {
   const session = await auth();
   const body = await req.json();
@@ -76,9 +76,12 @@ export const POST = async (
       outletId: Number(session?.user.outletId),
       quantity: Number(quantity),
       sellPrice: 0,
+      sellPriceGrosir: 0,
+      minGrosir: 0,
       markupPercentage: 0,
       discountPercentage: 0,
       isActive: true,
+      updatedAt: new Date(),
       updatedBy: String(session?.user.username),
       stockMovements: {
         create: {
@@ -94,6 +97,8 @@ export const POST = async (
             : null,
           expiredDateStr: expiredDate ? format(expiredDate, "yyyy-MM-dd") : "",
           description: description,
+          createdAt: new Date(),
+          updatedAt: new Date(),
           updatedBy: String(session?.user.username),
         },
       },

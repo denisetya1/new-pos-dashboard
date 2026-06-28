@@ -7,7 +7,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "rsync": "rsync -avz -e \"ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null\" --progress ./.next denisetya1@103.150.93.51:/var/www/new-pos-dashboard/"
   },
   "dependencies": {
     "@date-fns/utc": "^2.1.1",

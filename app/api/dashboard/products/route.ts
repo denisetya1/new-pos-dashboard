@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { format } from "date-fns";
 
 const _GET = async (req: NextRequest) => {
+  const session = await auth();
   const categoryId = req.nextUrl.searchParams.get("categoryId");
   const brandId = req.nextUrl.searchParams.get("brandId");
   const search = req.nextUrl.searchParams.get("search");
@@ -40,7 +41,7 @@ const _GET = async (req: NextRequest) => {
   const products = await prisma.product.findManyAndCount({
     where: {
       AND: [
-        { storeId: 1 },
+        { storeId: Number(session?.user.storeId) },
         {
           ...(brandId !== "" && brandId !== undefined && brandId !== null
             ? { brandId: Number(brandId) }

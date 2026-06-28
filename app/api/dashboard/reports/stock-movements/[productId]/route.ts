@@ -6,13 +6,7 @@ import { NextRequest } from "next/server";
 
 export const GET = async (
   req: NextRequest,
-  {
-    params,
-  }: {
-    params: {
-      productId: string;
-    };
-  },
+  { params }: { params: Promise<{ productId: string }> },
 ) => {
   const session = await auth();
   const { productId } = await params;
@@ -20,7 +14,7 @@ export const GET = async (
 
   const stock = await prisma.productStock.findFirst({
     where: {
-      storeId: 1,
+      storeId: Number(session?.user.storeId),
       productId: Number(productId),
       outletId: Number(outletId),
     },
