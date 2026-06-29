@@ -301,7 +301,7 @@ const EditPriceModal = ({
     <Modal
       title="Ubah Harga Produk"
       trigger={
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" className="p-0">
           <HiOutlinePencil className="h-4 w-4" />
         </Button>
       }

@@ -38,7 +38,7 @@ const Layout = ({
     <SessionProvider>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <div className="flex min-h-screen bg-gray-50 text-gray-900">
+          <div className="flex min-h-screen max-w-screen bg-gray-50 text-gray-900">
             {!isLoading && (
               <>
                 <Sidebar>
@@ -50,7 +50,7 @@ const Layout = ({
               </>
             )}
 
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col w-full">
               <>
                 <header className="flex items-center justify-between border-b bg-white/80 backdrop-blur px-4 py-3 md:px-6">
                   <div className="flex items-center gap-3">
@@ -93,7 +93,7 @@ const Layout = ({
                 </header>
               </>
               {/* Main Content */}
-              <main className="flex-1 p-4 md:p-6 space-y-6">
+              <main className="grow p-4 md:p-6 space-y-6">
                 {isLoading ? (
                   <div className="fixed top-0 left-0 bottom-0 right-0 w-full h-full flex items-center justify-center">
                     <div className="block w-75 h-75 text-center">
@@ -109,6 +109,7 @@ const Layout = ({
               </main>
             </div>
           </div>
+
           <ToastContainer
             position="top-right"
             autoClose={5000}

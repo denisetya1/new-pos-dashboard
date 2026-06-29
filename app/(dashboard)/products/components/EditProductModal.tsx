@@ -36,11 +36,9 @@ import {
 } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Modal from "../../components/Modal";
 import { ProductFormValues, productSchema } from "@/schemas/productSchema";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Product, Brand, Category } from "@/generated/prisma/client";
-import { HiOutlinePencil } from "react-icons/hi";
 import { useGetCategories } from "@/hooks/useCategories";
 import { useGetBrands } from "@/hooks/useBrands";
 import {
@@ -55,6 +53,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useGenerateBarcode } from "@/hooks/useBarcode";
 import { useEffect } from "react";
+import { useUpdateProduct } from "@/hooks/useProducts";
 
 type Props = {
   product?: Product | null;
@@ -140,10 +139,6 @@ const EditProductForm = ({
   const onSubmit = (values: ProductFormValues) => {
     mutation.mutate(values);
   };
-
-  function getBarcode(): void {
-    throw new Error("Function not implemented.");
-  }
 
   return (
     <Form {...form}>
@@ -326,7 +321,63 @@ const EditProductModal = ({
   open: boolean;
   onOpenChange: (open: boolean | undefined) => void;
 }) => {
-  const isEditMode = !!product;
+  const { data: categories } = useGetCategories();
+  const { data: brands } = useGetBrands();
+  const { data: barcode, mutate: generateBarcode } = useGenerateBarcode();
+  const { mutate: updateProduct, isPending } = useUpdateProduct(
+    String(product?.id),
+  );
+
+  const form = useForm<ProductFormValues>({
+    resolver: zodResolver(productSchema),
+    defaultValues: {
+      name: product?.name || "",
+      priceTagLabel: product?.priceTagLabel || "",
+      categoryId: product?.categoryId?.toString() || "",
+      brandId: product?.brandId?.toString() || "",
+      sku: product?.sku || "",
+      barcode: product?.barcode || "",
+    },
+  });
+
+  useEffect(() => {
+    if (product) {
+      form.reset({
+        name: product.name || "",
+        priceTagLabel: product.priceTagLabel || "",
+        categoryId: product.categoryId?.toString() || "",
+        brandId: product.brandId?.toString() || "",
+        sku: product.sku || "",
+        barcode: product.barcode || "",
+      });
+    }
+  }, [product, form]); // Berjalan otomatis saat data produk berganti
+
+  useEffect(() => {
+    if (barcode?.data) {
+      form.setValue("barcode", barcode.data);
+    }
+  }, [barcode]);
+
+  const onSubmit = (values: ProductFormValues) => {
+    const mutationOptions = {
+      onSuccess: (res: any) => {
+        if (res?.error) {
+          toast.error(res.error || "Gagal menyimpan diskon");
+          return;
+        }
+        toast.success("Produk berhasil diperbarui!");
+        form.reset();
+        onSuccess?.(); // Memicu refresh data di halaman utama
+        onOpenChange?.(false); // Otomatis tutup modal
+      },
+      onError: (error: any) => {
+        toast.error(error?.message || "Terjadi kesalahan pada server");
+      },
+    };
+
+    updateProduct(values, mutationOptions);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -336,22 +387,185 @@ const EditProductModal = ({
         </DialogHeader>
 
         {product && (
-          <EditProductForm
-            product={product}
-            isEditMode={isEditMode}
-            onSuccess={onSuccess}
-          />
-        )}
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="grid gap-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nama Produk</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Masukkan nama produk" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-        <DialogFooter>
-          <Button
-            variant={"outline"}
-            color=""
-            onClick={() => onOpenChange(false)}
-          >
-            Tutup
-          </Button>
-        </DialogFooter>
+                <FormField
+                  control={form.control}
+                  name="priceTagLabel"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nama di Label Harga & Barcode</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Nama di label harga (opsional)"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="categoryId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Kategori</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih kategori" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectLabel>Kategori</SelectLabel>
+                            {categories?.data?.map((category: Category) => (
+                              <SelectItem
+                                key={category.id}
+                                value={category.id.toString()}
+                              >
+                                {category.name}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="brandId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Brand</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih brand" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectLabel>Brand</SelectLabel>
+                            {brands?.data?.map((brand: Brand) => (
+                              <SelectItem
+                                key={brand.id}
+                                value={brand.id.toString()}
+                              >
+                                {brand.name}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="barcode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Barcode</FormLabel>
+                        <FormControl>
+                          <InputGroup>
+                            <InputGroupInput
+                              placeholder="Barcode (opsional)"
+                              {...field}
+                            />
+                            <InputGroupButton
+                              asChild
+                              className="bg-red-200 w-29"
+                            >
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant={"ghost"}
+                                    className="rounded-l-none border-l border-l-gray-200 bg-gray-100 text-gray-600"
+                                    type="button"
+                                    onClick={() => generateBarcode()}
+                                  >
+                                    <LucideArrowLeftFromLine />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom">
+                                  <p>Generate Barcode</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </InputGroupButton>
+                          </InputGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="sku"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>SKU</FormLabel>
+                        <FormControl>
+                          <Input placeholder="SKU (opsional)" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    form.reset();
+                    onOpenChange?.(false);
+                  }}
+                >
+                  Batal
+                </Button>
+                <Button type="submit" disabled={isPending}>
+                  {isPending && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Simpan
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        )}
       </DialogContent>
     </Dialog>
   );

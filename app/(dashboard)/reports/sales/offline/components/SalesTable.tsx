@@ -16,9 +16,16 @@ import { formatCurrency } from "@/lib/functions"; // Fungsi format rupiah Anda
 interface SalesTableProps {
   transactions: any[];
   isLoading?: boolean;
+  startNumber: number;
+  onDetailClick?: (transaction: any) => void;
 }
 
-const SalesTable = ({ transactions, isLoading }: SalesTableProps) => {
+const SalesTable = ({
+  transactions,
+  isLoading,
+  startNumber,
+  onDetailClick,
+}: SalesTableProps) => {
   console.log("transactions", transactions);
   if (isLoading) {
     return (
@@ -49,13 +56,19 @@ const SalesTable = ({ transactions, isLoading }: SalesTableProps) => {
       <Table>
         <TableHeader className="bg-slate-50/75 dark:bg-slate-800/50">
           <TableRow>
-            <TableHead className="w-[180px] font-semibold text-gray-700">
+            <TableHead className="font-semibold text-gray-700 w-10">
+              No.
+            </TableHead>
+            <TableHead className="w-45 font-semibold text-gray-700">
               Waktu / No. Nota
             </TableHead>
             <TableHead className="font-semibold text-gray-700">
               Kasir & Shift
             </TableHead>
-            <TableHead className="font-semibold text-gray-700">
+            <TableHead className="font-semibold text-gray-700 w-25">
+              Total Produk
+            </TableHead>
+            <TableHead className="w-30 font-semibold text-gray-700">
               Metode Pembayaran
             </TableHead>
             <TableHead className="font-semibold text-gray-700 text-right">
@@ -64,13 +77,13 @@ const SalesTable = ({ transactions, isLoading }: SalesTableProps) => {
             <TableHead className="font-semibold text-gray-700 text-right">
               Total Akhir
             </TableHead>
-            <TableHead className="w-[80px] text-center font-semibold text-gray-700">
+            <TableHead className="w-20 text-center font-semibold text-gray-700">
               Aksi
             </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {transactions.map((tx) => {
+          {transactions.map((tx, i) => {
             // Ambil nama pembayaran, misal "Cash", "QRIS BCA", dll.
             const paymentName =
               tx.outletPaymentMethod?.paymentMethod?.displayName || "Unknown";
@@ -81,7 +94,9 @@ const SalesTable = ({ transactions, isLoading }: SalesTableProps) => {
                 // 💡 KUNCI ZEBRA: even:bg-slate-50/60 akan mewarnai baris genap (2, 4, 6, dst)
                 className="even:bg-slate-50/60 dark:even:bg-slate-800/20 hover:bg-slate-100/70 dark:hover:bg-slate-800/40 transition-colors"
               >
-                {/* 1. WAKTU & ID TRANSAKSI */}
+                <TableCell className="font-medium px-4">
+                  {startNumber + i}
+                </TableCell>
                 <TableCell className="font-medium">
                   <div className="flex flex-col">
                     <span className="text-gray-900 dark:text-gray-100 font-semibold tracking-tight">
@@ -114,8 +129,10 @@ const SalesTable = ({ transactions, isLoading }: SalesTableProps) => {
                   </div>
                 </TableCell>
 
+                <TableCell className="text-center">{tx.totalItem}</TableCell>
+
                 {/* 3. METODE PEMBAYARAN (Menggunakan Badge agar kontras) */}
-                <TableCell>
+                <TableCell className="text-center">
                   <Badge
                     variant="outline"
                     className={`font-semibold px-2.5 py-0.5 rounded-md text-xs tracking-wide border
@@ -153,8 +170,7 @@ const SalesTable = ({ transactions, isLoading }: SalesTableProps) => {
                     size="icon"
                     className="h-8 w-8 hover:bg-slate-100 rounded-lg text-slate-500 hover:text-slate-900"
                     onClick={() => {
-                      // Trigger modal detail transaksi Anda di sini
-                      console.log("Lihat transaksi:", tx.id);
+                      onDetailClick?.(tx);
                     }}
                   >
                     <Eye className="h-4 w-4" />

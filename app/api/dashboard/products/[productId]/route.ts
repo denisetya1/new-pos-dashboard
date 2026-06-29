@@ -31,6 +31,7 @@ export const PUT = async (
     },
     data: {
       ...body,
+      updatedAt: new Date(),
       updatedBy: String(session?.user.username),
     },
   });

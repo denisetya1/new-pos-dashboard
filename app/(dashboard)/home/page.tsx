@@ -139,8 +139,8 @@ const HomePage = () => {
       </div>
 
       {/* Chart */}
-      <div className="flex flex-row justify-between gap-5">
-        <Card className="rounded-xl shadow-none w-1/2">
+      <div className="flex flex-col sm:flex-row justify-between gap-5">
+        <Card className="rounded-xl shadow-none w-full md:w-1/2">
           <CardHeader>
             <CardTitle>Ringkasan Total Penjualan Bulanan</CardTitle>
           </CardHeader>
@@ -149,7 +149,7 @@ const HomePage = () => {
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl shadow-none w-1/2">
+        <Card className="rounded-xl shadow-none w-full md:w-1/2">
           <CardHeader>
             <CardTitle>Ringkasan Jumlah Transaksi Bulanan</CardTitle>
           </CardHeader>
@@ -159,8 +159,8 @@ const HomePage = () => {
         </Card>
       </div>
 
-      <div className="flex flex-row justify-between gap-5">
-        <Card className="rounded-xl shadow-none w-1/2">
+      <div className="flex flex-col md:flex-row justify-between gap-5">
+        <Card className="rounded-xl shadow-none w-full md:w-1/2">
           <CardHeader>
             <CardTitle>Tren Jam Ramai Transaksi (24 Jam)</CardTitle>
           </CardHeader>
@@ -169,7 +169,7 @@ const HomePage = () => {
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl shadow-none w-1/2">
+        <Card className="rounded-xl shadow-none w-full md:w-1/2">
           <CardHeader>
             <CardTitle>Analisis Hari Ramai Transaksi (Mingguan)</CardTitle>
           </CardHeader>

@@ -34,7 +34,7 @@ const PrintBarcodeModal = ({
         </DialogHeader>
 
         {product && (
-          <div className="border border-slate-400 p-5 py-0">
+          <div className="w-60 m-auto border border-slate-400 p-5 py-10 flex justify-center items-center">
             <div
               ref={contentRef}
               className="w-37.5 flex flex-col items-center justify-center text-center p-1"

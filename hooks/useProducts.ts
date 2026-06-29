@@ -1,5 +1,6 @@
 import { handleRes } from "@/lib/response";
-import { useQuery } from "@tanstack/react-query";
+import { ProductFormValues } from "@/schemas/productSchema";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 export const useGetProducts = (qs: string) => {
   return useQuery({
@@ -31,6 +32,16 @@ export const useGetProductMultiOutlets = (qs: string) => {
   });
 };
 
-export const useUpdateProducts = () => {};
+export const useUpdateProduct = (productId: string) => {
+  return useMutation({
+    mutationKey: ["update-product-detail"],
+    mutationFn: async (values: ProductFormValues) => {
+      return fetch(`/api/dashboard/products/${productId}`, {
+        method: "PUT",
+        body: JSON.stringify(values),
+      }).then((res) => handleRes(res));
+    },
+  });
+};
 
 export const useAddProducts = () => {};

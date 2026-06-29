@@ -73,7 +73,7 @@ const SearchProductForm = ({
   };
 
   return (
-    <div className="sm:flex flex-row justify-start gap-5 items-center mb-8">
+    <div className="flex flex-col md:flex-row justify-center md:items-center gap-5 mb-8">
       <div>
         <div className="mb-2 block">
           <Label
@@ -98,7 +98,7 @@ const SearchProductForm = ({
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectLabel>Kategori</SelectLabel>
+              <SelectLabel>Pilih Kategori</SelectLabel>
               {categories?.data &&
                 categories?.data.map((category: Category) => (
                   <SelectItem
@@ -137,7 +137,7 @@ const SearchProductForm = ({
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectLabel>Brand</SelectLabel>
+              <SelectLabel>Pilih Brand</SelectLabel>
               {brands?.data &&
                 brands?.data?.map((brand: Brand) => (
                   <SelectItem

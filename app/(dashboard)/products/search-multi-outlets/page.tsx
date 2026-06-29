@@ -12,6 +12,14 @@ import { BarcodeIcon } from "lucide-react";
 import { ProductWithStocks } from "@/types/product";
 import { useGetProductMultiOutlets } from "@/hooks/useProducts";
 import { getFinalPrice } from "@/lib/functions";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const SearchMultiOutletPage = () => {
   const searchParams = useSearchParams();
@@ -67,80 +75,78 @@ const SearchMultiOutletPage = () => {
         />
       </div>
       <Card className="p-0">
-        <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 rounded-xl overflow-hidden">
-          <thead>
-            <tr className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 border-top-[1px] border-slate-200 rounded-md">
-              <th scope="col" className="px-6 py-5">
+        <Table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 rounded-xl overflow-hidden">
+          <TableHeader>
+            <TableRow className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 border-top-[1px] border-slate-200 rounded-md">
+              <TableHead scope="col" className="table-cell">
                 No.
-              </th>
-              <th scope="col" className="px-6 py-5 hover:bg-gray-200">
+              </TableHead>
+              <TableHead scope="col" className="table-cell hover:bg-gray-200">
                 Name
-              </th>
-              <th
+              </TableHead>
+              <TableHead
                 scope="col"
-                className="hidden sm:table-cell px-6 py-5 hover:bg-gray-200"
+                className="hidden sm:table-cell hover:bg-gray-200"
               >
-                Kategori
-              </th>
-              <th
-                scope="col"
-                className="hidden sm:table-cell px-6 py-5 hover:bg-gray-200"
-              >
-                Brand
-              </th>
-              <th scope="col" className="px-6 py-5">
+                Kategori / Brand
+              </TableHead>
+              <TableHead scope="col" className="px-3 py-5 align-top">
                 Stok & Harga
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="divide-y">
             {products &&
               products.map((product: ProductWithStocks, index: number) => (
-                <tr
+                <TableRow
                   key={product.id}
                   className="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700"
                 >
-                  <td className="px-6 py-5 w-10">
+                  <TableCell className="px-3 py-3 align-top w-10">
                     {index + 1 + (currentPage - 1) * limit}
-                  </td>
-                  <td className="px-6 py-5 w-80 text-black dark:text-white">
+                  </TableCell>
+                  <TableCell className="px-3 py-3 align-top w-80 text-black dark:text-white">
                     <div>{product.name}</div>
 
                     <div className="flex justify-start items-center gap-1 text-xm text-gray-400">
                       <BarcodeIcon size={12} />
                       {product.barcode ? product.barcode : "-"}
                     </div>
-                  </td>
-                  <td className="hidden sm:table-cell px-6 py-3">
-                    {product.category.name}
-                  </td>
-                  <td className="hidden sm:table-cell px-6 py-3">
-                    {product.brand.name}
-                  </td>
-                  <td className="px-6 py-3">
+                  </TableCell>
+                  <TableCell className="hidden sm:table-cell px-3 py-3 align-top">
+                    {product.category.name} /{product.brand.name}
+                  </TableCell>
+                  <TableCell className="px-3 py-3 align-top grid grid-cols-2 gap-2">
                     {product.stocks.map((o, i) => (
                       <div
-                        className={`${i !== 0 ? "border-t border-t-gray-200" : ""} p-2`}
+                        key={i}
+                        className="bg-slate-50 dark:bg-slate-800/50 border border-slate-300 rounded-lg px-4 py-2.5 flex flex-col min-w-35 flex-1 sm:flex-initial"
                       >
-                        <div className="font-semibold">{o.outlet.name}</div>
-                        <div>Jumlah: {o.quantity}</div>
-                        <div>
-                          Harga:{" "}
-                          {getFinalPrice(
-                            Number(o.sellPrice),
-                            o.markupPercentage,
-                            o.discountPercentage,
-                            true,
-                            true,
-                          )}
+                        <span className="text-sm text-gray-500 font-bold capitalize">
+                          {o.outlet.name}
+                        </span>
+                        <div className="flex justify-between items-center gap-2">
+                          <span className="text-sm text-gray-500 dark:text-gray-200 mt-0.5">
+                            Harga:{" "}
+                            {getFinalPrice(
+                              Number(o.sellPrice),
+                              o.markupPercentage,
+                              o.discountPercentage,
+                              true,
+                              true,
+                            )}
+                          </span>
+                          <span className="text-sm text-gray-500 dark:text-gray-200">
+                            <div>Stok: {o.quantity}</div>
+                          </span>
                         </div>
                       </div>
                     ))}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
         {isPending && (
           <div className="flex flex-col items-center gap-4 p-4 pt-2">
             <LoadingContent

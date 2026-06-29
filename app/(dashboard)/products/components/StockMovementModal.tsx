@@ -270,7 +270,7 @@ const StockMovementModal = ({
         <Button
           variant="outline"
           className="border-0 rounded-none"
-          size="sm"
+          size="xs"
           disabled={disabled}
         >
           {direction === "IN" ? <HiPlus /> : <HiMinus />}

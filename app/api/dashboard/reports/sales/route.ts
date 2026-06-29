@@ -44,10 +44,43 @@ export const GET = async (req: NextRequest) => {
         take: limit,
         orderBy: { transactionTime: "asc" },
         include: {
-          user: true,
-          userShift: { include: { shift: true } },
-          outlet: true,
-          outletPaymentMethod: { include: { paymentMethod: true } },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+            },
+          },
+          userShift: {
+            select: {
+              id: true,
+              shift: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          outlet: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          outletPaymentMethod: {
+            select: {
+              id: true,
+              paymentMethod: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          transactionDetails: true,
+          transactionDiscount: true,
         },
       }),
 

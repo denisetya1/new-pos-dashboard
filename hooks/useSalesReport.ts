@@ -10,3 +10,14 @@ export const useGetSalesReport = (qs: String) => {
     },
   });
 };
+
+export const useGetTransacationDetails = (transactionId: string) => {
+  return useQuery({
+    queryKey: ["transcation-detail", transactionId],
+    queryFn: () => {
+      return fetch(`/api/dashboard/reports/sales/${transactionId}`).then(
+        (res) => res.json(),
+      );
+    },
+  });
+};

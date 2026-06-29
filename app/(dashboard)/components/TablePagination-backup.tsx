@@ -60,7 +60,7 @@ const TablePagination = ({
   const pageNumbers = getPageNumbers();
 
   return (
-    <Pagination className="justify-end">
+    <Pagination className="justify-end my-4">
       <PaginationContent>
         {/* Previous Button */}
         <PaginationItem>
