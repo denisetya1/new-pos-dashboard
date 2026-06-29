@@ -459,9 +459,9 @@ model Transaction {
   updatedAt             DateTime?             @updatedAt @map("updated_at")
   deletedAt             DateTime?             @map("deleted_at")
   updatedBy             String?               @default("") @map("updated_by")
-  subTotal              Decimal?              @map("sub_total") @db.Decimal(10, 2)
+  subTotal              Decimal?              @default(0.00) @map("sub_total") @db.Decimal(10, 2)
   transactionDetails    TransactionDetail[]
-  transactionDiscount  TransactionDiscount?
+  transactionDiscount   TransactionDiscount?
   outlet                Outlet                @relation(fields: [outletId], references: [id])
   outletPaymentMethod   OutletPaymentMethod   @relation(fields: [outletPaymentMethodId], references: [id])
   user                  User                  @relation(fields: [userId], references: [id])
@@ -573,9 +573,6 @@ model Discount {
   createdBy      String?                 @map("created_by") @db.VarChar(100)
   discountValue  Decimal?                @default(0.00) @map("discount_value") @db.Decimal(10, 2)
   recommendation Boolean?                @default(true)
-  startDate      DateTime?               @map("start_date") @db.Date
-  endDate        DateTime?               @map("end_date") @db.Date
-  quota          Int?
   outlets        Outlet?                 @relation(fields: [outletId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "discounts_outlets_FK")
 
   @@index([outletId], map: "discounts_outlets_FK")
@@ -612,8 +609,8 @@ enum discounts_discount_type {
 
 enum transaction_details_detail_category {
   PRODUCT
-  PRODUCT_UNCOUNT
   DISCOUNT
   DISCOUNT_VOUCHER
   DISCOUNT_ADDITIONAL
+  PRODUCT_UNCOUNT
 }

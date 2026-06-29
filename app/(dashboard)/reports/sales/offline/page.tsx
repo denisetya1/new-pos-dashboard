@@ -25,7 +25,7 @@ const OfflineSalesReportPage = () => {
   const totalPages = Math.ceil(totalRow / limit);
   const currentPage = parseInt(page) || 1;
 
-  const handleDetailClick = (transaction) => {
+  const handleDetailClick = (transaction: any) => {
     setTransaction(transaction);
     setModalOpen(true);
   };
