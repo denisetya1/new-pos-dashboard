@@ -21,7 +21,7 @@ model User {
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime?     @updatedAt @map("updated_at")
   deletedAt     DateTime?     @map("deleted_at")
-  updatedBy     String?       @default("") @map("updated_by")
+  updatedBy     String?       @default("") @map("update_by")
   isSubAccount  Boolean?      @map("is_sub_account")
   transactions  Transaction[]
   userOutlets   UserOutlet[]

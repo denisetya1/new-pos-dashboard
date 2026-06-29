@@ -1,8 +1,6 @@
 import { ProductWithStocks } from "@/types/product";
 import React, { useState } from "react";
 import Modal from "../../components/Modal";
-import { Button } from "@/components/ui/button";
-import { LucideTimer } from "lucide-react";
 import { useGetStockMovements } from "@/hooks/useReports";
 import {
   Table,
@@ -19,9 +17,12 @@ import queryString from "query-string";
 
 const StockMovementHistoryModal = ({
   product,
+  onOpenChange,
+  open,
 }: {
   product: ProductWithStocks | null;
-  outletId: string;
+  onOpenChange?: (open: boolean) => void;
+  open: boolean;
 }) => {
   const [date, setDate] = useState<DateRange | undefined>({
     from: subDays(new Date(), 30),
@@ -33,22 +34,16 @@ const StockMovementHistoryModal = ({
     endDate: format(date?.to as Date, "yyyy-MM-dd"),
   });
   const { data: stockMovements } = useGetStockMovements(
-    String(product?.id),
+    product?.id?.toString(),
     qs,
+    { enabled: false },
   );
 
   return (
     <Modal
       title={"Riwayat Perubahan Stok"}
-      trigger={
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full text-purple-500 flex justify-baseline"
-        >
-          <LucideTimer className="text-purple-500" /> Riwayat Stok
-        </Button>
-      }
+      open={open}
+      onOpenChange={onOpenChange}
     >
       <div className="my-10">
         <div className="flex gap-6 mb-4">
@@ -107,3 +102,6 @@ const StockMovementHistoryModal = ({
   );
 };
 export default StockMovementHistoryModal;
+function useEfect(arg0: () => void, arg1: (bigint | undefined)[]) {
+  throw new Error("Function not implemented.");
+}

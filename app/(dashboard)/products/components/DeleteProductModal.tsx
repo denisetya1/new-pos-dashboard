@@ -1,6 +1,12 @@
 "use client";
 
-import { DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import Modal from "../../components/Modal";
 import { useMutation } from "@tanstack/react-query";
@@ -18,16 +24,21 @@ type DeleteProduct = {
   closeModal?: () => void;
 };
 
-const ConfirmDeleteProduct = ({
-  onSuccess,
-  onCancel,
+const DeleteProductModal = ({
   deletedProductName,
   productId,
-  closeModal,
-}: DeleteProduct) => {
+  open,
+  onOpenChange,
+  onSuccess,
+}: {
+  deletedProductName?: string;
+  productId?: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess: () => void;
+}) => {
   const {
     isPending,
-    data,
     mutate: deleteProduct,
     isSuccess,
     isError,
@@ -44,6 +55,7 @@ const ConfirmDeleteProduct = ({
   useEffect(() => {
     if (isSuccess) {
       onSuccess?.();
+      onOpenChange(false);
     }
   }, [isSuccess]);
 
@@ -57,71 +69,47 @@ const ConfirmDeleteProduct = ({
   }, [isError, error]);
 
   return (
-    <div>
-      <div className="py-4 pb-10">
-        Yakin akan menghapus <strong>"{deletedProductName}"</strong>?
-        <br />
-        Fungsi ini akan menghapus produk di semua cabang.
-      </div>
-
-      <DialogFooter>
-        {isPending ? (
-          <div className="flex flex-col items-center">
-            <Badge variant="secondary">
-              <Spinner data-icon="inline-start" />
-              Memproses...
-            </Badge>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-xl max-h-[80%] flex flex-col lg:min-w-[50%]">
+        <DialogHeader>
+          <DialogTitle>Cetak Barcode</DialogTitle>
+        </DialogHeader>
+        {productId && deletedProductName && (
+          <div>
+            <div className="py-4 pb-10">
+              Yakin akan menghapus <strong>"{deletedProductName}"</strong>?
+              <br />
+              Fungsi ini akan menghapus produk di semua cabang.
+            </div>
           </div>
-        ) : (
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                onCancel?.();
-                closeModal?.();
-              }}
-            >
-              Tidak
-            </Button>
-            <Button type="button" onClick={() => deleteProduct()}>
-              Ya
-            </Button>
-          </>
         )}
-      </DialogFooter>
-    </div>
-  );
-};
-
-const DeleteProductModal = ({
-  deletedProductName,
-  productId,
-  onOpenChange,
-}: {
-  deletedProductName: string;
-  productId: string;
-  onOpenChange?: (open: boolean) => void;
-}) => {
-  return (
-    <Modal
-      title="Hapus Produk"
-      trigger={
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full text-red-400 flex justify-baseline"
-        >
-          <LucideTrash2 className="text-red-400" /> Hapus Produk
-        </Button>
-      }
-      onOpenChange={onOpenChange}
-    >
-      <ConfirmDeleteProduct
-        deletedProductName={deletedProductName}
-        productId={productId}
-      />
-    </Modal>
+        <DialogFooter>
+          {isPending ? (
+            <div className="flex flex-col items-center">
+              <Badge variant="secondary">
+                <Spinner data-icon="inline-start" />
+                Memproses...
+              </Badge>
+            </div>
+          ) : (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  onOpenChange(false);
+                }}
+              >
+                Tidak
+              </Button>
+              <Button type="button" onClick={() => deleteProduct()}>
+                Ya
+              </Button>
+            </>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

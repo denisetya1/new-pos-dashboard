@@ -1,6 +1,12 @@
 "use client";
 
-import { DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "react-toastify";
@@ -309,35 +315,46 @@ const AddEditProductForm = ({
   );
 };
 
-const AddEditProductModal = ({
+const EditProductModal = ({
   product,
   onSuccess,
+  open,
+  onOpenChange,
 }: {
   product?: Product | null;
   onSuccess?: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }) => {
   const isEditMode = !!product;
 
   return (
-    <Modal
-      title="Edit Produk"
-      trigger={
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full text-blue-600 flex justify-baseline"
-        >
-          <LucideEdit3 className="h-4 w-4 text-blue-600" /> Edit Produk
-        </Button>
-      }
-    >
-      <AddEditProductForm
-        product={product}
-        isEditMode={isEditMode}
-        onSuccess={onSuccess}
-      />
-    </Modal>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-xl max-h-[80%] flex flex-col lg:min-w-[50%]">
+        <DialogHeader>
+          <DialogTitle>Cetak Barcode</DialogTitle>
+        </DialogHeader>
+
+        {product && (
+          <AddEditProductForm
+            product={product}
+            isEditMode={isEditMode}
+            onSuccess={onSuccess}
+          />
+        )}
+
+        <DialogFooter>
+          <Button
+            variant={"outline"}
+            color=""
+            onClick={() => onOpenChange(false)}
+          >
+            Tutup
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 
-export default AddEditProductModal;
+export default EditProductModal;

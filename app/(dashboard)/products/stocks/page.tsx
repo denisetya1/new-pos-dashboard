@@ -10,14 +10,21 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useGetProductStocks } from "@/hooks/useProductStocks";
 import StockMovementModal from "../components/StockMovementModal";
-import { BarcodeIcon, MoreVertical } from "lucide-react";
+import {
+  BarcodeIcon,
+  LucideEdit3,
+  LucidePrinter,
+  LucideTimer,
+  LucideTrash2,
+  MoreVertical,
+} from "lucide-react";
 import { formatCurrency, getFinalPrice } from "@/lib/functions";
 import EditPriceFormModal from "../components/EditPriceModal";
 import { useSession } from "next-auth/react";
 import { ProductWithStocks } from "@/types/product";
 import StockMovementHistoryModal from "../components/StockMovementHistoryModal";
 import AddProductModal from "../components/AddProductModal";
-import AddEditProductModal from "../components/EditProductModal";
+import EditProductModal from "../components/EditProductModal";
 import DeleteProductModal from "../components/DeleteProductModal";
 import PrintBarcodeModal from "../components/PrintBarcodeModal";
 import { Button } from "@/components/ui/button";
@@ -29,6 +36,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const PriceStockPage = () => {
+  const [modalOpen, setModalOpen] = useState<string | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [product, setProduct] = useState<ProductWithStocks | null>(null);
+
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const params = Object.fromEntries(searchParams.entries());
@@ -65,13 +76,11 @@ const PriceStockPage = () => {
 
   const handleActionSelect = (e: Event) => {
     e.preventDefault();
-
-    const dropdown = (e.currentTarget as HTMLElement).closest('[role="menu"]');
-
-    if (dropdown) {
-      (dropdown as HTMLElement).style.display = "none";
-    }
   };
+
+  useEffect(() => {
+    console.log("modalOpen", modalOpen);
+  }, [modalOpen]);
 
   return (
     <div>
@@ -262,7 +271,12 @@ const PriceStockPage = () => {
                     </div>
                   </td>
                   <td className="sm:table-cell px-6 py-3">
-                    <DropdownMenu>
+                    <DropdownMenu
+                      open={openMenuId === String(product.id)}
+                      onOpenChange={(open) => {
+                        setOpenMenuId(open ? String(product.id) : null);
+                      }}
+                    >
                       {/* 💡 Pemicu Dropdown */}
                       <DropdownMenuTrigger asChild>
                         <Button
@@ -276,50 +290,62 @@ const PriceStockPage = () => {
                       </DropdownMenuTrigger>
 
                       {/* 💡 Konten Menu dengan Pencegah Close Otomatis */}
+
                       <DropdownMenuContent className="w-40 p-1" align="end">
                         {/* Menu Riwayat */}
-                        <DropdownMenuItem
-                          onSelect={handleActionSelect}
-                          className="p-0"
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full text-purple-500 flex justify-baseline"
+                          onClick={() => {
+                            setModalOpen("history");
+                            setProduct(product);
+                            setOpenMenuId(null);
+                          }}
                         >
-                          <StockMovementHistoryModal
-                            product={product}
-                            outletId={String(outletId)}
-                          />
-                        </DropdownMenuItem>
+                          <LucideTimer className="text-purple-500" /> Riwayat
+                          Stok
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full text-green-600  flex justify-baseline"
+                          onClick={() => {
+                            setModalOpen("barcode");
+                            setProduct(product);
+                            setOpenMenuId(null);
+                          }}
+                        >
+                          <LucidePrinter className="text-green-600" /> Print
+                          Barcode
+                        </Button>
 
-                        {/* Menu Barcode */}
-                        <DropdownMenuItem
-                          onSelect={handleActionSelect}
-                          className="p-0"
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full text-blue-600 flex justify-baseline"
+                          onClick={() => {
+                            setModalOpen("edit-product");
+                            setProduct(product);
+                            setOpenMenuId(null);
+                          }}
                         >
-                          <PrintBarcodeModal
-                            deletedProductName={product.name}
-                            product={product}
-                          />
-                        </DropdownMenuItem>
+                          <LucideEdit3 className="h-4 w-4 text-blue-600" /> Edit
+                          Produk
+                        </Button>
 
-                        {/* Menu Edit */}
-                        <DropdownMenuItem
-                          onSelect={handleActionSelect}
-                          className="p-0"
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full text-red-400 flex justify-baseline"
+                          onClick={() => {
+                            setModalOpen("delete-product");
+                            setProduct(product);
+                            setOpenMenuId(null);
+                          }}
                         >
-                          <AddEditProductModal
-                            product={product}
-                            onSuccess={refetch}
-                          />
-                        </DropdownMenuItem>
-
-                        {/* Menu Delete */}
-                        <DropdownMenuItem
-                          onSelect={handleActionSelect}
-                          className="p-0"
-                        >
-                          <DeleteProductModal
-                            productId={String(product.id)}
-                            deletedProductName={product.name}
-                          />
-                        </DropdownMenuItem>
+                          <LucideTrash2 className="text-red-400" /> Hapus Produk
+                        </Button>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </td>
@@ -344,6 +370,40 @@ const PriceStockPage = () => {
           totalPages={Math.floor(totalRow / limit)}
         />
       </div>
+
+      <StockMovementHistoryModal
+        product={product}
+        open={modalOpen === "history"}
+        onOpenChange={(open) => {
+          setModalOpen(open ? "history" : null);
+        }}
+      />
+
+      <PrintBarcodeModal
+        product={product}
+        open={modalOpen === "barcode"}
+        onOpenChange={(open) => {
+          setModalOpen(open ? "barcode" : null);
+        }}
+      />
+
+      <EditProductModal
+        product={product}
+        onSuccess={refetch}
+        open={modalOpen === "edit-product"}
+        onOpenChange={(open) => {
+          setModalOpen(open ? "edit-product" : null);
+        }}
+      />
+
+      <DeleteProductModal
+        productId={String(product?.id)}
+        deletedProductName={product?.name}
+        open={modalOpen === "delete-product"}
+        onOpenChange={(open) => {
+          setModalOpen(open ? "delete-product" : null);
+        }}
+      />
     </div>
   );
 };

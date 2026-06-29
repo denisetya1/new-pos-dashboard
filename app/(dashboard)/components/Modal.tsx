@@ -29,18 +29,20 @@ const Modal = ({
   children,
   tooltipText,
   onOpenChange,
+  open,
 }: {
   title: React.ReactNode;
-  trigger: React.ReactNode;
+  trigger?: React.ReactNode;
   children: React.ReactNode;
   tooltipText?: string;
   onOpenChange?: (open: boolean) => void;
+  open: boolean;
 }) => {
-  const [open, setOpen] = useState(false);
+  // const [isOpen, setIsOpen] = useState(open);
 
   const childWithProps = isValidElement(children)
     ? cloneElement(children as React.ReactElement<ChildProps>, {
-        closeModal: () => setOpen(false),
+        closeModal: () => onOpenChange?.(false),
       })
     : children;
 
@@ -49,8 +51,8 @@ const Modal = ({
   }, [open]);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      {tooltipText && tooltipText !== "" ? (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {trigger && tooltipText && tooltipText !== "" && (
         <Tooltip>
           <TooltipTrigger asChild>
             <DialogTrigger asChild>{trigger}</DialogTrigger>
@@ -59,7 +61,9 @@ const Modal = ({
             <p>{tooltipText}</p>
           </TooltipContent>
         </Tooltip>
-      ) : (
+      )}
+
+      {trigger && (!tooltipText || tooltipText === "") && (
         <DialogTrigger asChild>{trigger}</DialogTrigger>
       )}
 

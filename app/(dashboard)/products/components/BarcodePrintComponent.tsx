@@ -1,7 +1,6 @@
 "use client";
 
 import { Product } from "@/generated/prisma/client";
-import React from "react";
 import Barcode from "react-barcode";
 
 type MyProps = {
