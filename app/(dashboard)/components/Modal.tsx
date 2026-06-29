@@ -35,8 +35,8 @@ const Modal = ({
   trigger?: React.ReactNode;
   children: React.ReactNode;
   tooltipText?: string;
-  onOpenChange?: (open: boolean) => void;
-  open: boolean;
+  onOpenChange?: (open: boolean | undefined) => void;
+  open?: boolean;
 }) => {
   // const [isOpen, setIsOpen] = useState(open);
 

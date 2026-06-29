@@ -97,11 +97,13 @@ const ConfirmDeleteDiscount = ({
 const DeleteDiscountModal = ({
   deletedProductName,
   discountId,
+  open,
   onOpenChange,
 }: {
   deletedProductName: string;
   discountId: string;
-  onOpenChange?: (open: boolean) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean | undefined) => void;
 }) => {
   return (
     <Modal

@@ -400,6 +400,7 @@ const PriceStockPage = () => {
         productId={String(product?.id)}
         deletedProductName={product?.name}
         open={modalOpen === "delete-product"}
+        onSuccess={refetch}
         onOpenChange={(open) => {
           setModalOpen(open ? "delete-product" : null);
         }}

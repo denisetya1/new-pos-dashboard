@@ -21,7 +21,7 @@ const PrintBarcodeModal = ({
 }: {
   product?: Product | null;
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onOpenChange: (open: boolean | undefined) => void;
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const handlePrint = useReactToPrint({ contentRef });

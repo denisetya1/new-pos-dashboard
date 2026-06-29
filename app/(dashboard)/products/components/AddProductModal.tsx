@@ -67,12 +67,7 @@ type Props = {
   onSuccess?: () => void;
 };
 
-const AddProductForm = ({
-  product,
-  isEditMode = false,
-  closeModal,
-  onSuccess,
-}: Props) => {
+const AddProductForm = ({ closeModal, onSuccess }: Props) => {
   const queryClient = useQueryClient();
 
   const { data: categories } = useGetCategories();
@@ -134,11 +129,9 @@ const AddProductForm = ({
   // API mutation
   const mutation = useMutation({
     mutationFn: async (values: CreateProductFormOutputValues) => {
-      const url = isEditMode
-        ? `/api/dashboard/products/${product?.id}`
-        : "/api/dashboard/products";
+      const url = "/api/dashboard/products";
 
-      const method = isEditMode ? "PUT" : "POST";
+      const method = "POST";
 
       const res = await fetch(url, {
         method,
@@ -147,18 +140,14 @@ const AddProductForm = ({
       });
 
       if (!res.ok) {
-        throw new Error(
-          isEditMode ? "Gagal update produk" : "Gagal membuat produk",
-        );
+        throw new Error("Gagal membuat produk");
       }
 
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
-      const msg = isEditMode
-        ? "Produk berhasil diupdate"
-        : "Produk berhasil dibuat";
+      const msg = "Produk berhasil dibuat";
       toast.success(msg, {
         position: "top-right",
         theme: "light",
@@ -574,7 +563,7 @@ const AddProductForm = ({
               {mutation.isPending && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              {isEditMode ? "Update" : "Simpan"}
+              Simpan
             </Button>
           </DialogFooter>
         </form>
@@ -584,33 +573,22 @@ const AddProductForm = ({
 };
 
 const AddProductModal = ({
-  product,
   onSuccess,
 }: {
   product?: Product | null;
   onSuccess?: () => void;
 }) => {
-  const isEditMode = !!product;
-
   return (
     <Modal
-      title={isEditMode ? "Edit Produk" : "Tambah Produk"}
+      title={"Tambah Produk"}
       trigger={
         <Button variant="default" size="sm">
-          {isEditMode ? (
-            <HiOutlinePencil className="h-4 w-4" />
-          ) : (
-            "Tambah Produk"
-          )}
+          "Tambah Produk"
         </Button>
       }
-      tooltipText={isEditMode ? "Edit Produk" : "Tambah Produk Baru"}
+      tooltipText={"Tambah Produk Baru"}
     >
-      <AddProductForm
-        product={product}
-        isEditMode={isEditMode}
-        onSuccess={onSuccess}
-      />
+      <AddProductForm product={null} onSuccess={onSuccess} />
     </Modal>
   );
 };

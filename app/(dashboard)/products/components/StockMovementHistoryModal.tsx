@@ -21,7 +21,7 @@ const StockMovementHistoryModal = ({
   open,
 }: {
   product: ProductWithStocks | null;
-  onOpenChange?: (open: boolean) => void;
+  onOpenChange?: (open: boolean | undefined) => void;
   open: boolean;
 }) => {
   const [date, setDate] = useState<DateRange | undefined>({

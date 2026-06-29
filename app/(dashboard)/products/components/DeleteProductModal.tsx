@@ -34,7 +34,7 @@ const DeleteProductModal = ({
   deletedProductName?: string;
   productId?: string;
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onOpenChange: (open: boolean | undefined) => void;
   onSuccess: () => void;
 }) => {
   const {

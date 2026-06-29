@@ -63,7 +63,7 @@ type Props = {
   onSuccess?: () => void;
 };
 
-const AddEditProductForm = ({
+const EditProductForm = ({
   product,
   isEditMode = false,
   closeModal,
@@ -324,7 +324,7 @@ const EditProductModal = ({
   product?: Product | null;
   onSuccess?: () => void;
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onOpenChange: (open: boolean | undefined) => void;
 }) => {
   const isEditMode = !!product;
 
@@ -336,7 +336,7 @@ const EditProductModal = ({
         </DialogHeader>
 
         {product && (
-          <AddEditProductForm
+          <EditProductForm
             product={product}
             isEditMode={isEditMode}
             onSuccess={onSuccess}
