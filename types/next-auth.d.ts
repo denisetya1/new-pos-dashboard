@@ -25,7 +25,7 @@ declare module "next-auth" {
     createdAt?: Date;
     updatedAt?: Date | null;
     deletedAt?: Date | null;
-    updateBy?: string | null;
+    updatedBy?: string | null;
   }
 
   interface Session {
