@@ -3,6 +3,7 @@ import { create } from "zustand";
 interface mobileSidebarToggle {
   mobileOpen: boolean;
   toggleMobileOpen: () => void;
+  closeMobileOpen: () => void;
 }
 
 export const useMobileSidebarToggle = create<mobileSidebarToggle>((set) => ({
@@ -11,4 +12,5 @@ export const useMobileSidebarToggle = create<mobileSidebarToggle>((set) => ({
     set((state) => {
       return { mobileOpen: !state.mobileOpen };
     }),
+  closeMobileOpen: () => set({ mobileOpen: false }),
 }));

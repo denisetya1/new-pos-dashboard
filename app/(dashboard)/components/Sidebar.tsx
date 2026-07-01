@@ -6,7 +6,7 @@ const Sidebar = ({ children }: { children: React.ReactElement }) => {
 
   return (
     <div
-      className={`hidden md:flex min-h-screen flex-col border-r bg-white/70 backdrop-blur transition-all duration-300 ${
+      className={`relative z-[90] hidden min-h-screen flex-col overflow-visible border-r bg-white/70 backdrop-blur transition-all duration-300 md:flex ${
         collapsed ? "w-20" : "w-64"
       }`}
     >

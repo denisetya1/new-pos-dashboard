@@ -71,7 +71,7 @@ const AnimatedSubmenu: React.FC<{
 
 export const Navigation: React.FC<SidebarProps> = ({ items }) => {
   const pathname = usePathname();
-  const { mobileOpen } = useMobileSidebarToggle();
+  const { mobileOpen, closeMobileOpen } = useMobileSidebarToggle();
   const { collapsed } = useSidebarToggle();
   const [openMenu, setOpenMenu] = useState<string | null>(null);
 
@@ -79,8 +79,14 @@ export const Navigation: React.FC<SidebarProps> = ({ items }) => {
     setOpenMenu((prev) => (prev === label ? null : label));
   };
 
+  const handleMenuClick = () => {
+    if (mobileOpen) {
+      closeMobileOpen();
+    }
+  };
+
   return (
-    <aside>
+    <aside className="relative z-[100] overflow-visible">
       <nav className="p-2 space-y-1">
         {items.map((item) => {
           const Icon = item.icon;
@@ -96,7 +102,11 @@ export const Navigation: React.FC<SidebarProps> = ({ items }) => {
               <Link key={item.label} href={item.href}>
                 <Button
                   variant="ghost"
+                  onClick={handleMenuClick}
+                  title={collapsed && !mobileOpen ? item.label : undefined}
                   className={`w-full justify-start gap-3 transition-colors hover:bg-brand-50 hover:text-brand-600 hover:cursor-pointer ${
+                    collapsed && !mobileOpen ? "justify-center px-0" : ""
+                  } ${
                     active ? "bg-brand-100 text-brand-600" : ""
                   }`}
                 >
@@ -113,6 +123,49 @@ export const Navigation: React.FC<SidebarProps> = ({ items }) => {
             );
 
             const isOpen = openMenu === item.label || isChildActive;
+
+            if (collapsed && !mobileOpen) {
+              return (
+                <div key={item.label} className="group relative z-[100]">
+                  <div>
+                    <Button
+                      variant="ghost"
+                      title={item.label}
+                      className={`w-full justify-center px-0 transition-colors hover:bg-brand-50 hover:text-brand-600 hover:cursor-pointer ${
+                        isChildActive ? "bg-brand-100 text-brand-600" : ""
+                      }`}
+                    >
+                      {Icon && <Icon size={18} />}
+                    </Button>
+                  </div>
+                  <div className="invisible absolute left-full top-0 z-[100] ml-2 min-w-52 rounded-md border bg-white p-2 text-gray-900 opacity-0 shadow-lg transition-all duration-150 group-hover:visible group-hover:opacity-100">
+                    <div className="px-2 py-1.5 text-sm font-semibold">
+                      {item.label}
+                    </div>
+                    {item.children.map((child) => {
+                      const active = pathname === child.href;
+                      return (
+                        <Button
+                          key={child.label}
+                          asChild
+                          variant="ghost"
+                          className={`w-full justify-start text-sm ${
+                            active ? "bg-brand-100 text-brand-600" : ""
+                          }`}
+                        >
+                          <Link
+                            href={child.href}
+                            onClick={handleMenuClick}
+                          >
+                            {child.label}
+                          </Link>
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            }
 
             return (
               <div key={item.label}>
@@ -147,6 +200,7 @@ export const Navigation: React.FC<SidebarProps> = ({ items }) => {
                           <Link key={child.label} href={child.href}>
                             <Button
                               variant="ghost"
+                              onClick={handleMenuClick}
                               className={`w-full justify-start font-medium text-sm transition-colors hover:bg-brand-50 hover:text-brand-600 hover:cursor-pointer ${
                                 active ? "bg-brand-100 text-brand-600" : ""
                               }`}
