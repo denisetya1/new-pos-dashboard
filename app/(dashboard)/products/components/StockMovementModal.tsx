@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/form";
 import { Loader2 } from "lucide-react";
 import { NumericFormat } from "react-number-format";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useGetOutlet } from "@/hooks/useOutlets";
 import { useGetMoveTypes } from "@/hooks/useMoveTypes";
@@ -263,6 +263,7 @@ const StockMovementModal = ({
   outletId: string;
   onSuccess?: () => void;
 }) => {
+  const [open, setOpen] = useState<boolean | undefined>(false);
   return (
     <Modal
       title={direction === "IN" ? "Penambahan Stok" : "Pengurangan Stok"}
@@ -276,6 +277,8 @@ const StockMovementModal = ({
           {direction === "IN" ? <HiPlus /> : <HiMinus />}
         </Button>
       }
+      open={open}
+      onOpenChange={setOpen}
       tooltipText={direction === "IN" ? "Penambahan Stok" : "Pengurangan Stok"}
     >
       <StockMovementForm

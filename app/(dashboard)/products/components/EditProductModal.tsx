@@ -23,8 +23,6 @@ import {
 import {
   Loader2,
   LucideArrowLeftFromLine,
-  LucideEdit2,
-  LucideEdit3,
 } from "lucide-react";
 import {
   Form,
@@ -361,9 +359,10 @@ const EditProductModal = ({
 
   const onSubmit = (values: ProductFormValues) => {
     const mutationOptions = {
-      onSuccess: (res: any) => {
-        if (res?.error) {
-          toast.error(res.error || "Gagal menyimpan diskon");
+      onSuccess: (res: unknown) => {
+        const response = res as { error?: string };
+        if (response.error) {
+          toast.error(response.error || "Gagal menyimpan diskon");
           return;
         }
         toast.success("Produk berhasil diperbarui!");
@@ -371,8 +370,12 @@ const EditProductModal = ({
         onSuccess?.(); // Memicu refresh data di halaman utama
         onOpenChange?.(false); // Otomatis tutup modal
       },
-      onError: (error: any) => {
-        toast.error(error?.message || "Terjadi kesalahan pada server");
+      onError: (error: unknown) => {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Terjadi kesalahan pada server";
+        toast.error(message);
       },
     };
 
@@ -381,14 +384,18 @@ const EditProductModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl max-h-[80%] flex flex-col lg:min-w-[50%]">
+      <DialogContent className="sm:max-w-xl lg:min-w-[50%]">
         <DialogHeader>
           <DialogTitle>Cetak Barcode</DialogTitle>
         </DialogHeader>
 
-        {product && (
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <div className="flex-1 overflow-y-auto p-6">
+          {product && (
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
               <div className="grid gap-4">
                 <FormField
                   control={form.control}
@@ -563,9 +570,10 @@ const EditProductModal = ({
                   Simpan
                 </Button>
               </DialogFooter>
-            </form>
-          </Form>
-        )}
+              </form>
+            </Form>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

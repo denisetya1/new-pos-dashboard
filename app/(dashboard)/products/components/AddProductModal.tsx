@@ -58,7 +58,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useGenerateBarcode } from "@/hooks/useBarcode";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 type Props = {
   product?: Product | null;
@@ -578,6 +578,7 @@ const AddProductModal = ({
   product?: Product | null;
   onSuccess?: () => void;
 }) => {
+  const [open, setOpen] = useState<boolean | undefined>(false);
   return (
     <Modal
       title={"Tambah Produk"}
@@ -587,6 +588,8 @@ const AddProductModal = ({
         </Button>
       }
       tooltipText={"Tambah Produk Baru"}
+      open={open}
+      onOpenChange={setOpen}
     >
       <AddProductForm product={null} onSuccess={onSuccess} />
     </Modal>

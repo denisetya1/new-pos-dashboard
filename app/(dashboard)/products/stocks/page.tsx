@@ -30,7 +30,6 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -128,13 +127,13 @@ const PriceStockPage = () => {
                 </TableHead>
                 <TableHead
                   scope="col"
-                  className="hidden mg:table-cell text-center  hover:bg-gray-200"
+                  className="hidden lg:table-cell text-center  hover:bg-gray-200"
                 >
                   Harga Jual
                 </TableHead>
                 <TableHead
                   scope="col"
-                  className="hidden lg:table-cell text-center  hover:bg-gray-200"
+                  className="hidden md:table-cell text-center  hover:bg-gray-200"
                 >
                   Mark Up
                 </TableHead>
@@ -268,7 +267,7 @@ const PriceStockPage = () => {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="table-cell align-top  flex justify-center">
+                    <TableCell className="table-cell align-top justify-center">
                       <DropdownMenu
                         open={openMenuId === String(product.id)}
                         onOpenChange={(open) => {

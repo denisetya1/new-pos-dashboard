@@ -362,7 +362,7 @@ const OutletUsersPage = () => {
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent>
-          <form onSubmit={onSubmit}>
+          <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
             <DialogHeader>
               <DialogTitle>
                 {selectedOutletUser
@@ -370,7 +370,7 @@ const OutletUsersPage = () => {
                   : "Tambah Pengguna Outlet"}
               </DialogTitle>
             </DialogHeader>
-            <div className="my-6 space-y-4">
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
               <div className="space-y-2">
                 <Label>User Sub Account</Label>
                 <Select
@@ -434,7 +434,7 @@ const OutletUsersPage = () => {
           <DialogHeader>
             <DialogTitle>Hapus Pengguna Outlet</DialogTitle>
           </DialogHeader>
-          <div className="my-6 text-sm">
+          <div className="flex-1 overflow-y-auto p-6 text-sm">
             Hapus akses outlet untuk{" "}
             <strong>{selectedOutletUser?.user.name}</strong>?
           </div>

@@ -18,6 +18,9 @@ export const GET = async (req: NextRequest) => {
         {
           storeId: 0,
         },
+        {
+          storeId: null,
+        },
       ],
       direction: direction as DirectionEnum,
       isActive: true,

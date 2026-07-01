@@ -378,11 +378,11 @@ const SubAccountsPage = () => {
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent>
-          <form onSubmit={onSubmit}>
+          <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
             <DialogHeader>
               <DialogTitle>Tambah User Sub Account</DialogTitle>
             </DialogHeader>
-            <div className="my-6 grid gap-4 md:grid-cols-2">
+            <div className="flex-1 overflow-y-auto p-6 grid gap-4 md:grid-cols-2">
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="sub-account-name">Nama User</Label>
                 <Input
@@ -474,7 +474,7 @@ const SubAccountsPage = () => {
           <DialogHeader>
             <DialogTitle>Hapus Sub Account</DialogTitle>
           </DialogHeader>
-          <div className="my-6 text-sm">
+          <div className="flex-1 overflow-y-auto p-6 text-sm">
             Hapus sub account <strong>{selectedUser?.name}</strong>?
           </div>
           <DialogFooter>

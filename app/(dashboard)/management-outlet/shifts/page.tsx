@@ -336,13 +336,13 @@ const OutletShiftsPage = () => {
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent>
-          <form onSubmit={onSubmit}>
+          <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
             <DialogHeader>
               <DialogTitle>
                 {selectedShift ? "Edit Shift Kasir" : "Tambah Shift Kasir"}
               </DialogTitle>
             </DialogHeader>
-            <div className="my-6 space-y-4">
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="shift-name">Nama Shift</Label>
                 <Input
@@ -392,7 +392,7 @@ const OutletShiftsPage = () => {
           <DialogHeader>
             <DialogTitle>Hapus Shift Kasir</DialogTitle>
           </DialogHeader>
-          <div className="my-6 text-sm">
+          <div className="flex-1 overflow-y-auto p-6 text-sm">
             Hapus shift <strong>{selectedShift?.name}</strong>?
           </div>
           <DialogFooter>

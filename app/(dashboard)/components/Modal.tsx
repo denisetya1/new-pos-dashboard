@@ -1,11 +1,6 @@
 "use client";
 
-import React, {
-  cloneElement,
-  isValidElement,
-  useEffect,
-  useState,
-} from "react";
+import React, { cloneElement, isValidElement, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -38,8 +33,6 @@ const Modal = ({
   onOpenChange?: (open: boolean | undefined) => void;
   open?: boolean;
 }) => {
-  // const [isOpen, setIsOpen] = useState(open);
-
   const childWithProps = isValidElement(children)
     ? cloneElement(children as React.ReactElement<ChildProps>, {
         closeModal: () => onOpenChange?.(false),
@@ -48,7 +41,7 @@ const Modal = ({
 
   useEffect(() => {
     onOpenChange?.(open);
-  }, [open]);
+  }, [onOpenChange, open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -67,12 +60,12 @@ const Modal = ({
         <DialogTrigger asChild>{trigger}</DialogTrigger>
       )}
 
-      <DialogContent className="sm:max-w-xl max-h-[80%] flex flex-col lg:min-w-[50%]">
+      <DialogContent className="sm:max-w-xl lg:min-w-[50%]">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
 
-        {childWithProps}
+        <div className="flex-1 overflow-y-auto p-6">{childWithProps}</div>
       </DialogContent>
     </Dialog>
   );

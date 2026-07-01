@@ -8,21 +8,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import Modal from "../../components/Modal";
 import { useMutation } from "@tanstack/react-query";
 import { Spinner } from "@/components/ui/spinner";
 import { Badge } from "@/components/ui/badge";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
-import { LucideTrash2 } from "lucide-react";
-
-type DeleteProduct = {
-  onSuccess?: () => void;
-  onCancel?: () => void;
-  deletedProductName?: string;
-  productId: string;
-  closeModal?: () => void;
-};
 
 const DeleteProductModal = ({
   deletedProductName,
@@ -70,14 +60,14 @@ const DeleteProductModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl max-h-[80%] flex flex-col lg:min-w-[50%]">
+      <DialogContent className="sm:max-w-xl lg:min-w-[50%]">
         <DialogHeader>
           <DialogTitle>Cetak Barcode</DialogTitle>
         </DialogHeader>
         {productId && deletedProductName && (
-          <div>
-            <div className="py-4 pb-10">
-              Yakin akan menghapus <strong>"{deletedProductName}"</strong>?
+          <div className="flex-1 overflow-y-auto p-6">
+            <div>
+              Yakin akan menghapus <strong>{deletedProductName}</strong>?
               <br />
               Fungsi ini akan menghapus produk di semua cabang.
             </div>

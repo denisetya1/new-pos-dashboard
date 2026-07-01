@@ -25,7 +25,7 @@ import {
   InputGroupText,
 } from "@/components/ui/input-group";
 import { NumericFormat } from "react-number-format";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { formatCurrency, getFinalPrice } from "@/lib/functions";
 import { toast } from "react-toastify";
 import { useUpsertProductPrice } from "@/hooks/useProductPrice";
@@ -296,6 +296,7 @@ const EditPriceModal = ({
   outletId: string;
   onSuccess?: () => void;
 }) => {
+  const [open, setOpen] = useState<boolean | undefined>(false);
   return (
     <Modal
       title="Ubah Harga Produk"
@@ -304,6 +305,8 @@ const EditPriceModal = ({
           <HiOutlinePencil className="h-4 w-4" />
         </Button>
       }
+      open={open}
+      onOpenChange={setOpen}
       tooltipText="Ubah Harga"
     >
       <EditPriceForm

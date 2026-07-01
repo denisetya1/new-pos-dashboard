@@ -233,11 +233,11 @@ const RolesPage = () => {
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent>
-          <form onSubmit={onSubmit}>
+          <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
             <DialogHeader>
               <DialogTitle>Tambah Role</DialogTitle>
             </DialogHeader>
-            <div className="my-6 space-y-2">
+            <div className="flex-1 overflow-y-auto p-6 space-y-2">
               <Label htmlFor="role-name">Nama Role</Label>
               <Input
                 id="role-name"

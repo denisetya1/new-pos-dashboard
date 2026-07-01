@@ -8,7 +8,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import Modal from "../../components/Modal";
 import { Product } from "@/generated/prisma/client";
 import { useReactToPrint } from "react-to-print";
 import { useRef } from "react";
@@ -28,34 +27,36 @@ const PrintBarcodeModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl max-h-[80%] flex flex-col lg:min-w-[50%]">
+      <DialogContent className="sm:max-w-xl lg:min-w-[50%]">
         <DialogHeader>
           <DialogTitle>Cetak Barcode</DialogTitle>
         </DialogHeader>
 
-        {product && (
-          <div className="w-60 m-auto border border-slate-400 p-5 py-10 flex justify-center items-center">
-            <div
-              ref={contentRef}
-              className="w-37.5 flex flex-col items-center justify-center text-center p-1"
-            >
-              <div className="w-full text-[9px] text-left z-10 capitalize px-1">
-                {product.name.substring(0, 30).toLowerCase()}
+        <div className="flex-1 overflow-y-auto p-6">
+          {product && (
+            <div className="w-60 m-auto border border-slate-400 p-5 py-10 flex justify-center items-center">
+              <div
+                ref={contentRef}
+                className="w-37.5 flex flex-col items-center justify-center text-center p-1"
+              >
+                <div className="w-full text-[9px] text-left z-10 capitalize px-1">
+                  {product.name.substring(0, 30).toLowerCase()}
+                </div>
+                <div className="-mt-2.5">
+                  {product.barcode !== null && product.barcode !== "" && (
+                    <Barcode
+                      height={22}
+                      width={1}
+                      displayValue={false}
+                      value={product.barcode}
+                    />
+                  )}
+                </div>
+                <div className="text-[10px] -mt-2.5">{product.barcode}</div>
               </div>
-              <div className="-mt-2.5">
-                {product.barcode !== null && product.barcode !== "" && (
-                  <Barcode
-                    height={22}
-                    width={1}
-                    displayValue={false}
-                    value={product.barcode}
-                  />
-                )}
-              </div>
-              <div className="text-[10px] -mt-2.5">{product.barcode}</div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         <DialogFooter>
           <Button

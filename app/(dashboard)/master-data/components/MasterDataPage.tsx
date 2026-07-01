@@ -384,13 +384,13 @@ const MasterDataPage = ({ config }: { config: MasterDataConfig }) => {
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent>
-          <form onSubmit={onSubmit}>
+          <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
             <DialogHeader>
               <DialogTitle>
                 {selectedItem ? "Edit" : "Tambah"} {config.title}
               </DialogTitle>
             </DialogHeader>
-            <div className="my-6 space-y-4">
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="master-data-name">{config.nameLabel}</Label>
                 <Input
@@ -467,7 +467,7 @@ const MasterDataPage = ({ config }: { config: MasterDataConfig }) => {
           <DialogHeader>
             <DialogTitle>Nonaktifkan {config.title}</DialogTitle>
           </DialogHeader>
-          <div className="my-6 text-sm">
+          <div className="flex-1 overflow-y-auto p-6 text-sm">
             Nonaktifkan data <strong>{selectedItem?.name}</strong>?
           </div>
           <DialogFooter>
