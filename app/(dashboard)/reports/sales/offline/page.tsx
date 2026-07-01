@@ -15,7 +15,26 @@ import { OfflineSalesFilter } from "./components/OfflineSalesFilter";
 import { OfflineSalesTable } from "./components/OfflineSalesTable";
 import TablePagination from "@/app/(dashboard)/components/TablePagination";
 
-export default function OfflineSalesView({ outlets = [] }: { outlets: any[] }) {
+type OfflineSalesSummary = {
+  totalTransactions: number;
+  totalItemSales: number;
+  totalRevenue: number;
+};
+
+type PaymentMethodSummary = {
+  paymentMethodId: number | string;
+  name: string;
+  totalTransactions: number;
+  totalRevenue: number;
+};
+
+type CashierSummary = {
+  userId: number | string;
+  name: string;
+  totalRevenue: number;
+};
+
+export default function OfflineSalesView() {
   const searchParams = useSearchParams();
 
   const limit = 50;
@@ -26,13 +45,14 @@ export default function OfflineSalesView({ outlets = [] }: { outlets: any[] }) {
     params.toString(),
   );
 
-  const summary = report?.data?.summary || {
+  const summary: OfflineSalesSummary = report?.data?.summary || {
     totalTransactions: 0,
     totalItemSales: 0,
     totalRevenue: 0,
   };
-  const byPaymentMethod = report?.data?.byPaymentMethod || [];
-  const byCashier = report?.data?.byCashier || [];
+  const byPaymentMethod: PaymentMethodSummary[] =
+    report?.data?.byPaymentMethod || [];
+  const byCashier: CashierSummary[] = report?.data?.byCashier || [];
 
   const topPayment = [...byPaymentMethod].sort(
     (a, b) => b.totalRevenue - a.totalRevenue,
@@ -44,11 +64,11 @@ export default function OfflineSalesView({ outlets = [] }: { outlets: any[] }) {
 
   if (isLoading)
     return (
-      <div className="p-6 space-y-6 animate-pulse">Loading Dashboard...</div>
+      <div className="p-2 space-y-6 animate-pulse">Loading Dashboard...</div>
     );
 
   return (
-    <div className="p-6 space-y-6 bg-slate-50/50 dark:bg-black min-h-screen">
+    <div className="p-2 space-y-6 bg-slate-50/50 dark:bg-black min-h-screen">
       {/* HEADER */}
       <div>
         <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white flex items-center gap-2">
@@ -133,11 +153,11 @@ export default function OfflineSalesView({ outlets = [] }: { outlets: any[] }) {
           <div className="flex items-center gap-2 border-b pb-3 mb-4">
             <CreditCard className="h-4 w-4 text-emerald-600" />
             <h2 className="text-sm font-bold text-gray-900 dark:text-white">
-              Metode Pembayaran Domestik
+              Metode Pembayaran
             </h2>
           </div>
           <div className="space-y-4 flex-1">
-            {byPaymentMethod.map((item: any) => {
+            {byPaymentMethod.map((item) => {
               const percentage =
                 summary.totalRevenue > 0
                   ? (item.totalRevenue / summary.totalRevenue) * 100
@@ -147,7 +167,7 @@ export default function OfflineSalesView({ outlets = [] }: { outlets: any[] }) {
                   <div className="flex justify-between items-center text-xs">
                     <span className="font-semibold text-gray-700 dark:text-gray-300">
                       {item.name}{" "}
-                      <span className="text-[10px] text-gray-400">
+                      <span className="text-[10px] text-gray-600">
                         ({item.totalTransactions}x)
                       </span>
                     </span>
@@ -176,7 +196,7 @@ export default function OfflineSalesView({ outlets = [] }: { outlets: any[] }) {
             </h2>
           </div>
           <div className="space-y-4 flex-1">
-            {byCashier.map((item: any) => {
+            {byCashier.map((item) => {
               const percentage =
                 summary.totalRevenue > 0
                   ? (item.totalRevenue / summary.totalRevenue) * 100
@@ -213,7 +233,10 @@ export default function OfflineSalesView({ outlets = [] }: { outlets: any[] }) {
       )}
 
       {/* TABEL DATA TRANSASKI OFFLINE */}
-      <OfflineSalesTable transactions={report?.data?.contents || []} />
+      <OfflineSalesTable
+        transactions={report?.data?.contents || []}
+        startNumber={(currentPage - 1) * limit + 1}
+      />
 
       {report && (
         <TablePagination

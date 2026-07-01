@@ -15,7 +15,29 @@ import { useGetOnlineSalesReport } from "@/hooks/useSalesReport";
 import { OnlineSalesTable } from "./components/OnlineSalesTable";
 import TablePagination from "@/app/(dashboard)/components/TablePagination";
 
-export default function OnlineSalesView({ outlets = [] }: { outlets: any[] }) {
+type OnlineSalesSummary = {
+  totalTransactions: number;
+  totalItemSales: number;
+  totalRevenue: number;
+};
+
+type MarketplaceSummary = {
+  marketplaceId: number | string;
+  name: string;
+  color?: string | null;
+  totalTransactions: number;
+  totalRevenue: number;
+};
+
+type CourierSummary = {
+  courierId: number | string;
+  name: string;
+  color?: string | null;
+  totalPackages: number;
+  totalRevenue: number;
+};
+
+export default function OnlineSalesView() {
   const searchParams = useSearchParams();
 
   const limit = 50;
@@ -28,13 +50,14 @@ export default function OnlineSalesView({ outlets = [] }: { outlets: any[] }) {
     params.toString(),
   );
 
-  const summary = report?.data?.summary || {
+  const summary: OnlineSalesSummary = report?.data?.summary || {
     totalTransactions: 0,
     totalItemSales: 0,
     totalRevenue: 0,
   };
-  const byMarketplace = report?.data?.byMarketplace || [];
-  const byCourier = report?.data?.byCourier || [];
+  const byMarketplace: MarketplaceSummary[] =
+    report?.data?.byMarketplace || [];
+  const byCourier: CourierSummary[] = report?.data?.byCourier || [];
 
   // Cari marketplace dan kurir dengan performa tertinggi untuk highlight info
   const topMarketplace = [...byMarketplace].sort(
@@ -78,7 +101,7 @@ export default function OnlineSalesView({ outlets = [] }: { outlets: any[] }) {
       </div>
 
       {/* 🔍 FILTER COMPONENT */}
-      <OnlineSalesFilter outlets={outlets} />
+      <OnlineSalesFilter />
 
       {/* 📊 WIDGET STATISTIK / SUMMARY CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -166,7 +189,7 @@ export default function OnlineSalesView({ outlets = [] }: { outlets: any[] }) {
                 Belum ada transaksi di rentang waktu ini
               </div>
             ) : (
-              byMarketplace.map((item: any) => {
+              byMarketplace.map((item) => {
                 const percentage =
                   summary.totalRevenue > 0
                     ? (item.totalRevenue / summary.totalRevenue) * 100
@@ -222,7 +245,7 @@ export default function OnlineSalesView({ outlets = [] }: { outlets: any[] }) {
                 Belum ada paket yang dikirim
               </div>
             ) : (
-              byCourier.map((item: any) => {
+              byCourier.map((item) => {
                 const percentage =
                   summary.totalTransactions > 0
                     ? (item.totalPackages / summary.totalTransactions) * 100
@@ -274,7 +297,10 @@ export default function OnlineSalesView({ outlets = [] }: { outlets: any[] }) {
         />
       )}
 
-      <OnlineSalesTable transactions={report?.data?.contents} />
+      <OnlineSalesTable
+        transactions={report?.data?.contents}
+        startNumber={(currentPage - 1) * limit + 1}
+      />
 
       {report && (
         <TablePagination

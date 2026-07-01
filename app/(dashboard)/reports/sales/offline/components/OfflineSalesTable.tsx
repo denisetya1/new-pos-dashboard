@@ -17,6 +17,27 @@ import { Badge } from "@/components/ui/badge";
 import { TransactionDetailModal } from "../../components/TransactionDetailModal";
 import { useState } from "react";
 
+type OfflineTransaction = {
+  id: number | string;
+  transactionTime: string | Date;
+  subTotal?: number | string | null;
+  totalDiscount?: number | string | null;
+  totalPrice?: number | string | null;
+  totalItem: number;
+  amountPaid: number | string;
+  amountChange: number | string;
+  user?: {
+    name?: string | null;
+  } | null;
+  outletPaymentMethod?: {
+    paymentMethod?: {
+      id: string;
+      name: string;
+      displayName: string;
+    };
+  } | null;
+};
+
 // Fungsi Helper warna badge dinamis berdasarkan nama metode pembayaran
 const getPaymentBadgeColor = (methodName: string = "") => {
   const name = methodName.toLowerCase();
@@ -48,12 +69,15 @@ const getPaymentBadgeColor = (methodName: string = "") => {
 
 export const OfflineSalesTable = ({
   transactions = [],
-  onDetailClick,
+  startNumber = 1,
 }: {
-  transactions: any[];
+  transactions: OfflineTransaction[];
+  startNumber?: number;
 }) => {
   const [modalOpen, setModalOpen] = useState(false);
-  const [transaction, setTransaction] = useState<any>(null);
+  const [transaction, setTransaction] = useState<OfflineTransaction | null>(
+    null,
+  );
 
   return (
     <div className="bg-white dark:bg-gray-900 border rounded-xl shadow-sm overflow-hidden">
@@ -73,22 +97,25 @@ export const OfflineSalesTable = ({
         <Table>
           <TableHeader className="bg-slate-50/40 dark:bg-slate-900/20">
             <TableRow className="text-xs uppercase tracking-wider">
+              <TableHead className="w-14 text-center">No</TableHead>
               <TableHead>ID Transaksi / Waktu</TableHead>
-              <TableHead>Kasir Pelaksana</TableHead>
+              <TableHead>Kasir</TableHead>
               <TableHead>Metode Bayar</TableHead>
-              <TableHead className="text-center">Kuantitas</TableHead>
+              <TableHead className="text-center">Jml. Item</TableHead>
               <TableHead className="text-right">Sub Total</TableHead>
               <TableHead className="text-right">Diskon</TableHead>
               <TableHead className="text-right">Total Netto</TableHead>
-              <TableHead className="text-right">Tunai / Kembalian</TableHead>
-              <TableHead className="w-[80px] text-center">Aksi</TableHead>
+              <TableHead className="text-right">
+                Jumlah Bayar / Kembalian
+              </TableHead>
+              <TableHead className="w-20 text-center">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="text-xs">
             {transactions.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={9}
+                  colSpan={10}
                   className="text-center py-12 text-gray-400"
                 >
                   <div className="flex flex-col items-center justify-center gap-1">
@@ -98,7 +125,7 @@ export const OfflineSalesTable = ({
                 </TableCell>
               </TableRow>
             ) : (
-              transactions.map((tx) => {
+              transactions.map((tx, index) => {
                 // 🌟 Langsung ambil murni dari field database Anda masing-masing
                 const subTotal = Number(tx.subTotal || 0);
                 const totalDiscount = Number(tx.totalDiscount || 0);
@@ -109,6 +136,10 @@ export const OfflineSalesTable = ({
                     key={tx.id}
                     className="hover:bg-slate-50/60 dark:hover:bg-slate-800/30"
                   >
+                    <TableCell className="text-center font-mono text-gray-500">
+                      {startNumber + index}
+                    </TableCell>
+
                     {/* ID & WAKTU */}
                     <TableCell className="py-3.5">
                       <span className="font-mono font-bold text-gray-900 dark:text-white block">
@@ -132,9 +163,10 @@ export const OfflineSalesTable = ({
                     <TableCell>
                       <Badge
                         variant="outline"
-                        className={`text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 ${getPaymentBadgeColor(tx.outletPaymentMethod?.name)}`}
+                        className={`text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 ${getPaymentBadgeColor(tx.outletPaymentMethod?.paymentMethod?.name ?? undefined)}`}
                       >
-                        {tx.outletPaymentMethod?.name || "Tunai"}
+                        {tx.outletPaymentMethod?.paymentMethod?.displayName ||
+                          "Tunai"}
                       </Badge>
                     </TableCell>
 
@@ -144,7 +176,7 @@ export const OfflineSalesTable = ({
                     </TableCell>
 
                     {/* SUB TOTAL */}
-                    <TableCell className="text-right font-mono text-gray-500">
+                    <TableCell className="text-right font-mono text-gray-700">
                       {formatCurrency(subTotal)}
                     </TableCell>
 
@@ -161,9 +193,9 @@ export const OfflineSalesTable = ({
                     </TableCell>
 
                     {/* TUNAI / KEMBALIAN */}
-                    <TableCell className="text-right font-mono text-[11px] text-gray-500">
+                    <TableCell className="text-right font-mono text-[11px] text-gray-600">
                       <div>B: {formatCurrency(Number(tx.amountPaid))}</div>
-                      <div className="text-[10px] text-gray-400">
+                      <div className="text-[10px] text-gray-600">
                         K: {formatCurrency(Number(tx.amountChange))}
                       </div>
                     </TableCell>

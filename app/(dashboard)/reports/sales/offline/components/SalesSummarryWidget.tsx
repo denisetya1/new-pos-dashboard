@@ -100,7 +100,7 @@ export const SalesSummaryWidget = ({ summary }: { summary: any }) => {
                     <span className="text-sm font-bold text-gray-700 dark:text-gray-200 mt-0.5">
                       {formatCurrency(pay.totalSales)}
                     </span>
-                    <span className="text-[10px] text-gray-400">
+                    <span className="text-[10px] text-gray-600">
                       {pay.transactionCount}x transaksi
                     </span>
                   </div>

@@ -5,7 +5,6 @@ import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import {
   Eye,
-  ExternalLink,
   Copy,
   Check,
   PackageCheck,
@@ -24,13 +23,38 @@ import {
 } from "@/components/ui/table";
 import { TransactionDetailModal } from "../../components/TransactionDetailModal";
 
-type Props = {
-  transactions: any[]; // Lempar array `contents` dari API response Anda ke sini
+type OnlineTransaction = {
+  id: number | string;
+  transactionTime: string | Date;
+  totalItem: number;
+  totalPrice: number | string;
+  totalDiscount: number | string;
+  confirmNumber?: string | null;
+  marketplace?: {
+    name?: string | null;
+    color?: string | null;
+  } | null;
+  courier?: {
+    name?: string | null;
+  } | null;
+  user?: {
+    name?: string | null;
+  } | null;
 };
 
-export const OnlineSalesTable = ({ transactions = [] }: Props) => {
+type Props = {
+  transactions: OnlineTransaction[];
+  startNumber?: number;
+};
+
+export const OnlineSalesTable = ({
+  transactions = [],
+  startNumber = 1,
+}: Props) => {
   const [modalOpen, setModalOpen] = useState(false);
-  const [transaction, setTransaction] = useState<any>(null);
+  const [transaction, setTransaction] = useState<OnlineTransaction | null>(
+    null,
+  );
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Fungsi utilitas salin No. Resi ke clipboard
@@ -66,6 +90,7 @@ export const OnlineSalesTable = ({ transactions = [] }: Props) => {
         <Table>
           <TableHeader className="bg-slate-50/40 dark:bg-slate-900/20">
             <TableRow className="text-xs uppercase tracking-wider">
+              <TableHead className="w-14 text-center">No</TableHead>
               <TableHead className="w-[180px]">No. Nota / Waktu</TableHead>
               <TableHead>Marketplace</TableHead>
               <TableHead>Ekspedisi / No. Resi</TableHead>
@@ -79,7 +104,7 @@ export const OnlineSalesTable = ({ transactions = [] }: Props) => {
             {transactions.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={7}
                   className="text-center py-12 text-gray-400"
                 >
                   <div className="flex flex-col items-center justify-center gap-2">
@@ -91,11 +116,15 @@ export const OnlineSalesTable = ({ transactions = [] }: Props) => {
                 </TableCell>
               </TableRow>
             ) : (
-              transactions.map((tx) => (
+              transactions.map((tx, index) => (
                 <TableRow
                   key={tx.id}
                   className="hover:bg-slate-50/60 dark:hover:bg-slate-800/30"
                 >
+                  <TableCell className="text-center font-mono text-gray-500">
+                    {startNumber + index}
+                  </TableCell>
+
                   {/* NO NOTA & WAKTU */}
                   <TableCell className="py-3.5">
                     <span className="font-mono font-bold text-gray-900 dark:text-white block">
@@ -143,10 +172,10 @@ export const OnlineSalesTable = ({ transactions = [] }: Props) => {
                         </Badge>
                         <div className="flex items-center gap-1.5 group">
                           <span className="font-mono text-gray-500 text-[11px] select-all">
-                            {getCleanResi(tx.confirmNumber)}
+                            {getCleanResi(tx.confirmNumber ?? "")}
                           </span>
                           <button
-                            onClick={() => handleCopyResi(tx.confirmNumber)}
+                            onClick={() => handleCopyResi(tx.confirmNumber ?? "")}
                             className="text-gray-400 hover:text-purple-600 transition"
                             title="Salin Resi"
                           >
