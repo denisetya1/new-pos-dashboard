@@ -135,6 +135,26 @@ export const GET = async (req: NextRequest) => {
           transactionDetails: true,
           transactionDiscount: true,
           outlet: { select: { name: true } },
+          userShift: {
+            select: {
+              shift: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+          outletPaymentMethod: {
+            include: {
+              paymentMethod: {
+                select: {
+                  id: true,
+                  name: true,
+                  displayName: true,
+                },
+              },
+            },
+          },
         },
       }),
     ]);

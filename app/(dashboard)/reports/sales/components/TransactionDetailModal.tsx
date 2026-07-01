@@ -13,7 +13,6 @@ import {
   User,
   Store,
   Calendar,
-  Clock,
   CreditCard,
   ShoppingBag,
   Tag,
@@ -29,8 +28,56 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+type TransactionDetail = {
+  id: number | string;
+  name: string;
+  barcode?: string | null;
+  qty: number;
+  sellPrice: number | string;
+  total: number | string;
+  totalDiscount?: number | string | null;
+};
+
+type TransactionForDetail = {
+  id: number | string;
+  transactionTime: string | Date;
+  totalItem?: number | null;
+  subTotal?: number | string | null;
+  totalDiscount?: number | string | null;
+  totalPrice?: number | string | null;
+  amountPaid?: number | string | null;
+  amountChange?: number | string | null;
+  trackingNumber?: string | null;
+  transactionDiscount?: {
+    name?: string | null;
+  } | null;
+  marketplace?: {
+    name?: string | null;
+  } | null;
+  courier?: {
+    name?: string | null;
+  } | null;
+  outlet?: {
+    name?: string | null;
+  } | null;
+  user?: {
+    name?: string | null;
+  } | null;
+  userShift?: {
+    shift?: {
+      name?: string | null;
+    } | null;
+  } | null;
+  outletPaymentMethod?: {
+    paymentMethod?: {
+      displayName?: string | null;
+    } | null;
+  } | null;
+  transactionDetails?: TransactionDetail[];
+};
+
 type Props = {
-  transaction: any;
+  transaction: TransactionForDetail | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
@@ -42,16 +89,16 @@ export const TransactionDetailModal = ({
 }: Props) => {
   if (!transaction) return null;
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("id-ID", {
+  const formatDate = (date: string | Date) => {
+    return new Date(date).toLocaleDateString("id-ID", {
       year: "numeric",
       month: "long",
       day: "numeric",
     });
   };
 
-  const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString("id-ID", {
+  const formatTime = (date: string | Date) => {
+    return new Date(date).toLocaleTimeString("id-ID", {
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -60,7 +107,6 @@ export const TransactionDetailModal = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col p-0 gap-0 overflow-hidden">
-        {/* HEADER MODAL */}
         <DialogHeader className="p-6 pb-4 bg-slate-50 dark:bg-slate-900 border-b shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -85,9 +131,7 @@ export const TransactionDetailModal = ({
           </div>
         </DialogHeader>
 
-        {/* AREA SCROLL KONTEN */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6 rounded-2xl">
-          {/* 🏪 OUTLET & WAKTU */}
           <div className="grid grid-cols-2 gap-4 text-xs">
             <div className="space-y-1">
               <div className="flex items-center gap-1.5 text-gray-400">
@@ -113,7 +157,6 @@ export const TransactionDetailModal = ({
             </div>
           </div>
 
-          {/* 👤 KASIR & SHIFT */}
           <div className="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-3.5 grid grid-cols-2 gap-2 text-xs">
             <div>
               <span className="text-gray-400 block mb-1">Petugas Kasir</span>
@@ -133,8 +176,7 @@ export const TransactionDetailModal = ({
             </div>
           </div>
 
-          {/* 📦 📊 TABEL LIST PRODUK YANG DIBELI */}
-          <div className="space-y-2  rounded-2xl">
+          <div className="space-y-2 rounded-2xl">
             <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
               <ShoppingBag className="h-3.5 w-3.5" /> Rincian Belanja
             </h4>
@@ -153,43 +195,40 @@ export const TransactionDetailModal = ({
                   </TableRow>
                 </TableHeader>
                 <TableBody className="text-xs align-top">
-                  {transaction.transactionDetails?.map(
-                    (item: any, idx: number) => (
-                      <TableRow key={item.id} className="hover:bg-transparent">
-                        <TableCell className="text-center font-medium text-gray-400 pl-4 py-3">
-                          {idx + 1}
-                        </TableCell>
-                        <TableCell className="py-3">
-                          <div className="font-semibold text-gray-800 dark:text-gray-200 leading-tight">
-                            {item.name}
+                  {transaction.transactionDetails?.map((item, idx: number) => (
+                    <TableRow key={item.id} className="hover:bg-transparent">
+                      <TableCell className="text-center font-medium text-gray-400 pl-4 py-3">
+                        {idx + 1}
+                      </TableCell>
+                      <TableCell className="py-3">
+                        <div className="font-semibold text-gray-800 dark:text-gray-200 leading-tight">
+                          {item.name}
+                        </div>
+                        <div className="text-[10px] text-gray-400 font-mono mt-0.5">
+                          {item.barcode}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center font-semibold py-3">
+                        {item.qty}
+                      </TableCell>
+                      <TableCell className="text-right text-gray-600 dark:text-gray-400 py-3">
+                        {formatCurrency(Number(item.sellPrice))}
+                      </TableCell>
+                      <TableCell className="text-right font-bold text-gray-900 dark:text-white pr-4 py-3">
+                        {formatCurrency(Number(item.total))}
+                        {Number(item.totalDiscount) > 0 && (
+                          <div className="text-[10px] text-red-500 font-normal">
+                            - {formatCurrency(Number(item.totalDiscount))}
                           </div>
-                          <div className="text-[10px] text-gray-400 font-mono mt-0.5">
-                            {item.barcode}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center font-semibold py-3">
-                          {item.qty}
-                        </TableCell>
-                        <TableCell className="text-right text-gray-600 dark:text-gray-400 py-3">
-                          {formatCurrency(Number(item.sellPrice))}
-                        </TableCell>
-                        <TableCell className="text-right font-bold text-gray-900 dark:text-white pr-4 py-3">
-                          {formatCurrency(Number(item.total))}
-                          {Number(item.totalDiscount) > 0 && (
-                            <div className="text-[10px] text-red-500 font-normal">
-                              - {formatCurrency(Number(item.totalDiscount))}
-                            </div>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ),
-                  )}
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </div>
           </div>
 
-          {/* 💳 CARA BAYAR & METODE */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
@@ -201,25 +240,32 @@ export const TransactionDetailModal = ({
                     Metode
                   </span>
                   <span className="font-bold text-sm text-gray-800 dark:text-gray-200">
-                    {transaction.outletPaymentMethod?.paymentMethod
-                      ?.displayName || "Tunai"}
+                    <div>
+                      {transaction.outletPaymentMethod?.paymentMethod
+                        ?.displayName || "-"}
+                      {transaction.marketplace && (
+                        <div>{transaction.marketplace.name}</div>
+                      )}
+                    </div>
                   </span>
                 </div>
-                {transaction.confirmNumber &&
-                  transaction.confirmNumber !== "0" && (
-                    <div className="text-right">
+                {transaction.trackingNumber &&
+                  transaction.trackingNumber !== "0" && (
+                    <div className="text-right flex flex-col">
                       <span className="text-[11px] text-gray-400 block">
-                        Reff No.
+                        Tracking No.
                       </span>
                       <span className="text-xs font-mono bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
-                        {transaction.confirmNumber}
+                        {transaction.trackingNumber}
+                      </span>
+                      <span className="text-xs font-mono">
+                        {transaction.courier?.name}
                       </span>
                     </div>
                   )}
               </div>
             </div>
 
-            {/* 💰 RINGKASAN PEMBAYARAN KASIR */}
             <div className="bg-slate-50 dark:bg-slate-900 border rounded-xl p-4 space-y-2.5 text-xs">
               <div className="flex justify-between text-gray-500">
                 <span>Total Item</span>
@@ -269,7 +315,6 @@ export const TransactionDetailModal = ({
           </div>
         </div>
 
-        {/* FOOTER ACTION */}
         <div className="p-4 bg-slate-50 dark:bg-slate-900 border-t flex justify-end gap-2 shrink-0">
           <Button
             variant="outline"

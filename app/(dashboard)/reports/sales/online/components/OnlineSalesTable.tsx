@@ -29,7 +29,7 @@ type OnlineTransaction = {
   totalItem: number;
   totalPrice: number | string;
   totalDiscount: number | string;
-  confirmNumber?: string | null;
+  trackingNumber?: string | null;
   marketplace?: {
     name?: string | null;
     color?: string | null;
@@ -57,17 +57,10 @@ export const OnlineSalesTable = ({
   );
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // Fungsi utilitas salin No. Resi ke clipboard
-  const handleCopyResi = (text: string) => {
-    // Ambil string resi setelah tanda '/' (misal: SPX-Instant/260601V5XN -> 260601V5XN)
-    const resiOnly = text.includes("/") ? text.split("/")[1] : text;
-    navigator.clipboard.writeText(resiOnly);
-    setCopiedId(text);
+  const handleCopyTrackingNumber = (trackingNumber: string) => {
+    navigator.clipboard.writeText(trackingNumber);
+    setCopiedId(trackingNumber);
     setTimeout(() => setCopiedId(null), 2000);
-  };
-
-  const getCleanResi = (text: string) => {
-    return text.includes("/") ? text.split("/")[1] : text;
   };
 
   return (
@@ -162,24 +155,26 @@ export const OnlineSalesTable = ({
 
                   {/* EKSPEDISI / RESI */}
                   <TableCell>
-                    {tx.confirmNumber ? (
+                    {tx.trackingNumber ? (
                       <div className="space-y-1">
                         <Badge
                           variant="outline"
                           className="text-[10px] py-0 px-1.5 font-medium border-slate-200 bg-slate-50 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
                         >
-                          {tx.courier?.name || tx.confirmNumber.split("/")[0]}
+                          {tx.courier?.name || "Kurir"}
                         </Badge>
                         <div className="flex items-center gap-1.5 group">
                           <span className="font-mono text-gray-500 text-[11px] select-all">
-                            {getCleanResi(tx.confirmNumber ?? "")}
+                            {tx.trackingNumber}
                           </span>
                           <button
-                            onClick={() => handleCopyResi(tx.confirmNumber ?? "")}
+                            onClick={() =>
+                              handleCopyTrackingNumber(tx.trackingNumber ?? "")
+                            }
                             className="text-gray-400 hover:text-purple-600 transition"
                             title="Salin Resi"
                           >
-                            {copiedId === tx.confirmNumber ? (
+                            {copiedId === tx.trackingNumber ? (
                               <Check className="h-3 w-3 text-emerald-500" />
                             ) : (
                               <Copy className="h-3 w-3 opacity-0 group-hover:opacity-100" />
