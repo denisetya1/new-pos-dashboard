@@ -13,6 +13,7 @@ import { formatCurrency } from "@/lib/functions";
 import { useGetOfflineSalesReport } from "@/hooks/useSalesReport";
 import { OfflineSalesFilter } from "./components/OfflineSalesFilter";
 import { OfflineSalesTable } from "./components/OfflineSalesTable";
+import TablePagination from "@/app/(dashboard)/components/TablePagination";
 
 export default function OfflineSalesView({ outlets = [] }: { outlets: any[] }) {
   const searchParams = useSearchParams();
@@ -36,6 +37,10 @@ export default function OfflineSalesView({ outlets = [] }: { outlets: any[] }) {
   const topPayment = [...byPaymentMethod].sort(
     (a, b) => b.totalRevenue - a.totalRevenue,
   )[0];
+
+  const { totalRow } = report?.data || {};
+  const totalPages = Math.ceil(totalRow / limit);
+  const currentPage = Number(page) || 1;
 
   if (isLoading)
     return (
@@ -199,11 +204,24 @@ export default function OfflineSalesView({ outlets = [] }: { outlets: any[] }) {
         </div>
       </div>
 
+      {report && (
+        <TablePagination
+          totalPages={totalPages}
+          currentPage={currentPage}
+          limit={limit}
+        />
+      )}
+
       {/* TABEL DATA TRANSASKI OFFLINE */}
-      <OfflineSalesTable
-        transactions={report?.data?.contents || []}
-        onDetailClick={() => {}}
-      />
+      <OfflineSalesTable transactions={report?.data?.contents || []} />
+
+      {report && (
+        <TablePagination
+          totalPages={totalPages}
+          currentPage={currentPage}
+          limit={limit}
+        />
+      )}
     </div>
   );
 }

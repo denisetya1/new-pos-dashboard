@@ -16,7 +16,7 @@ export const GET = async (req: NextRequest) => {
     const { searchParams } = new URL(req.url);
     const startDateParam = searchParams.get("startDate");
     const endDateParam = searchParams.get("endDate");
-    const outletId = searchParams.get("outletId");
+    const outletId = session?.user?.outletId;
 
     // 💡 Setup Paginasi dari Query Params
     const page = Number(searchParams.get("page") || "1");
@@ -24,15 +24,12 @@ export const GET = async (req: NextRequest) => {
     const skip = (page - 1) * limit;
 
     const whereCondition: any = {
+      outletId: BigInt(outletId),
       marketplaceId: {
         not: null,
       },
       deletedAt: null,
     };
-
-    if (outletId && outletId !== "all") {
-      whereCondition.outletId = BigInt(outletId);
-    }
 
     const start = startDateParam ? parseISO(startDateParam) : new Date();
     const end = endDateParam ? parseISO(endDateParam) : new Date();

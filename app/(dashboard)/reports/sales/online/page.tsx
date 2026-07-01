@@ -13,6 +13,7 @@ import { formatCurrency } from "@/lib/functions";
 import { OnlineSalesFilter } from "./components/OnlineSalesFilter";
 import { useGetOnlineSalesReport } from "@/hooks/useSalesReport";
 import { OnlineSalesTable } from "./components/OnlineSalesTable";
+import TablePagination from "@/app/(dashboard)/components/TablePagination";
 
 export default function OnlineSalesView({ outlets = [] }: { outlets: any[] }) {
   const searchParams = useSearchParams();
@@ -42,6 +43,10 @@ export default function OnlineSalesView({ outlets = [] }: { outlets: any[] }) {
   const topCourier = [...byCourier].sort(
     (a, b) => b.totalPackages - a.totalPackages,
   )[0];
+
+  const { totalRow } = report?.data || {};
+  const totalPages = Math.ceil(totalRow / limit);
+  const currentPage = Number(page) || 1;
 
   if (isLoading) {
     return (
@@ -261,10 +266,23 @@ export default function OnlineSalesView({ outlets = [] }: { outlets: any[] }) {
         </div>
       </div>
 
-      <OnlineSalesTable
-        transactions={report?.data?.contents}
-        onDetailClick={() => {}}
-      />
+      {report && (
+        <TablePagination
+          totalPages={totalPages}
+          currentPage={currentPage}
+          limit={limit}
+        />
+      )}
+
+      <OnlineSalesTable transactions={report?.data?.contents} />
+
+      {report && (
+        <TablePagination
+          totalPages={totalPages}
+          currentPage={currentPage}
+          limit={limit}
+        />
+      )}
     </div>
   );
 }

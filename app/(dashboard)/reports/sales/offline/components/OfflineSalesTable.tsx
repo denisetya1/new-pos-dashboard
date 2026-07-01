@@ -14,6 +14,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { TransactionDetailModal } from "../../components/TransactionDetailModal";
+import { useState } from "react";
 
 // Fungsi Helper warna badge dinamis berdasarkan nama metode pembayaran
 const getPaymentBadgeColor = (methodName: string = "") => {
@@ -49,8 +51,10 @@ export const OfflineSalesTable = ({
   onDetailClick,
 }: {
   transactions: any[];
-  onDetailClick: (tx: any) => void;
 }) => {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [transaction, setTransaction] = useState<any>(null);
+
   return (
     <div className="bg-white dark:bg-gray-900 border rounded-xl shadow-sm overflow-hidden">
       <div className="p-5 border-b flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/40">
@@ -169,7 +173,10 @@ export const OfflineSalesTable = ({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onDetailClick(tx)}
+                        onClick={() => {
+                          setModalOpen(true);
+                          setTransaction(tx);
+                        }}
                         className="h-8 w-8 p-0 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 text-gray-500 hover:text-emerald-600 rounded-lg"
                       >
                         <Eye className="h-4 w-4" />
@@ -182,6 +189,12 @@ export const OfflineSalesTable = ({
           </TableBody>
         </Table>
       </div>
+
+      <TransactionDetailModal
+        transaction={transaction}
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+      />
     </div>
   );
 };

@@ -22,16 +22,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TransactionDetailModal } from "../../components/TransactionDetailModal";
 
 type Props = {
   transactions: any[]; // Lempar array `contents` dari API response Anda ke sini
-  onDetailClick: (transaction: any) => void; // Callback ketika tombol 'Detail' ditekan
 };
 
-export const OnlineSalesTable = ({
-  transactions = [],
-  onDetailClick,
-}: Props) => {
+export const OnlineSalesTable = ({ transactions = [] }: Props) => {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [transaction, setTransaction] = useState<any>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Fungsi utilitas salin No. Resi ke clipboard
@@ -186,7 +185,10 @@ export const OnlineSalesTable = ({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => onDetailClick(tx)}
+                      onClick={() => {
+                        setModalOpen(true);
+                        setTransaction(tx);
+                      }}
                       className="h-8 w-8 p-0 text-gray-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30 rounded-lg"
                     >
                       <Eye className="h-4 w-4" />
@@ -199,6 +201,12 @@ export const OnlineSalesTable = ({
           </TableBody>
         </Table>
       </div>
+
+      <TransactionDetailModal
+        transaction={transaction}
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+      />
     </div>
   );
 };

@@ -13,7 +13,7 @@ export const GET = async (req: NextRequest) => {
     const { searchParams } = new URL(req.url);
     const startDateParam = searchParams.get("startDate");
     const endDateParam = searchParams.get("endDate");
-    const outletId = searchParams.get("outletId");
+    const outletId = session?.user?.outletId;
 
     const page = Number(searchParams.get("page") || "1");
     const limit = Number(searchParams.get("limit") || "50");
@@ -23,11 +23,8 @@ export const GET = async (req: NextRequest) => {
     const whereCondition: any = {
       marketplaceId: null,
       deletedAt: null,
+      outletId: BigInt(outletId),
     };
-
-    if (outletId && outletId !== "all") {
-      whereCondition.outletId = BigInt(outletId);
-    }
 
     const start = startDateParam ? parseISO(startDateParam) : new Date();
     const end = endDateParam ? parseISO(endDateParam) : new Date();
