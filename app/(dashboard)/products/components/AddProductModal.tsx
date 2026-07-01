@@ -584,7 +584,7 @@ const AddProductModal = ({
       title={"Tambah Produk"}
       trigger={
         <Button variant="default" size="sm">
-          "Tambah Produk"
+          Tambah Produk
         </Button>
       }
       tooltipText={"Tambah Produk Baru"}

@@ -55,7 +55,7 @@ export default function LoginForm() {
             <Lock className="w-10 h-10 text-white" />
           </div>
           <CardTitle className="text-3xl font-bold bg-linear-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent dark:from-white dark:to-gray-200">
-            POS Dashboard
+            Beautycat POS Dashboard
           </CardTitle>
           <CardDescription className="text-lg text-gray-600 dark:text-gray-400">
             Masuk ke akun Anda
@@ -131,7 +131,7 @@ export default function LoginForm() {
           </form>
 
           <div className="text-xs text-center text-gray-500 dark:text-gray-400 pt-4 border-t">
-            © 2024 POS Dashboard. All rights reserved.
+            © 2024 Powered by Nika-POS. All rights reserved.
           </div>
         </CardContent>
       </Card>
