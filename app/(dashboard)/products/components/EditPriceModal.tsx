@@ -102,7 +102,6 @@ const EditPriceForm = ({
   }, [isPending, isSuccess, error, isError]);
 
   const onSubmit = (values: ProductPriceFormOutputValues) => {
-    console.log(values);
     mutate(values);
   };
 

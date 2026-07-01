@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-export const useGetSalesReport = (qs: String) => {
+export const useGetOfflineSalesReport = (qs: String) => {
   return useQuery({
     queryKey: ["salesReport", qs],
     queryFn: () => {
@@ -11,13 +11,13 @@ export const useGetSalesReport = (qs: String) => {
   });
 };
 
-export const useGetTransacationDetails = (transactionId: string) => {
+export const useGetOnlineSalesReport = (qs: String) => {
   return useQuery({
-    queryKey: ["transcation-detail", transactionId],
+    queryKey: ["salesReport", qs],
     queryFn: () => {
-      return fetch(`/api/dashboard/reports/sales/${transactionId}`).then(
-        (res) => res.json(),
-      );
+      return fetch(
+        `/api/dashboard/reports/sales/online${qs !== "" ? `?${qs}` : ""}`,
+      ).then((res) => res.json());
     },
   });
 };

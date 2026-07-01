@@ -1,156 +1,142 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
-import { addDays, format } from "date-fns";
-import { isEmptyVal } from "@/lib/functions";
 import { buildResponse } from "@/lib/response";
+import { parseISO, startOfDay, endOfDay } from "date-fns";
 
 export const GET = async (req: NextRequest) => {
-  const session = await auth();
+  try {
+    const session = await auth();
+    if (!session)
+      return buildResponse({ status: 401, message: "Unauthorized" });
 
-  const date =
-    req.nextUrl.searchParams.get("date") ||
-    format(new Date("2026-05-01"), "yyyy-MM-dd");
-  const online = req.nextUrl.searchParams.get("online") === "true";
+    const { searchParams } = new URL(req.url);
+    const startDateParam = searchParams.get("startDate");
+    const endDateParam = searchParams.get("endDate");
+    const outletId = searchParams.get("outletId");
 
-  const startDate = new Date(date);
-  const endDate = new Date(
-    `${format(addDays(new Date(date), 1), "yyyy-MM-dd")} 07:00:00`,
-  );
+    const page = Number(searchParams.get("page") || "1");
+    const limit = Number(searchParams.get("limit") || "50");
+    const skip = (page - 1) * limit;
 
-  let limit = Number(req.nextUrl.searchParams.get("limit"));
-  let page = Number(req.nextUrl.searchParams.get("page"));
+    // 💡 Filter Dasar: Hanya ambil transaksi OFFLINE (marketplaceId: null)
+    const whereCondition: any = {
+      marketplaceId: null,
+      deletedAt: null,
+    };
 
-  if (isEmptyVal(limit, true)) limit = 50;
-  if (isEmptyVal(page, true)) page = 1;
+    if (outletId && outletId !== "all") {
+      whereCondition.outletId = BigInt(outletId);
+    }
 
-  const whereCondition = {
-    outletId: Number(session?.user.outletId),
-    transactionTime: {
-      gte: startDate,
-      lte: endDate,
-    },
-    ...(online
-      ? { outletPaymentMethod: { paymentMethodId: 4 } }
-      : { outletPaymentMethod: { paymentMethodId: { not: 4 } } }),
-  };
+    const start = startDateParam ? parseISO(startDateParam) : new Date();
+    const end = endDateParam ? parseISO(endDateParam) : new Date();
+    whereCondition.transactionTime = {
+      gte: startOfDay(start),
+      lte: endOfDay(end),
+    };
 
-  const [salesData, totalRow, paymentSummary, discountSummary] =
-    await Promise.all([
-      // 1. Data list transaksi (Tetap sama)
+    // QUERY 1: Ringkasan Utama (Total Transaksi, Item, Omset)
+    const summaryAggregate = await prisma.transaction.aggregate({
+      where: whereCondition,
+      _count: { id: true },
+      _sum: { totalItem: true, totalPrice: true },
+    });
+
+    // QUERY 2: Rekap Per Metode Pembayaran (Cash, EDC, QRIS, dll.)
+    const paymentGroupBy = await prisma.transaction.groupBy({
+      by: ["outletPaymentMethodId"],
+      where: whereCondition,
+      _count: { id: true },
+      _sum: { totalPrice: true },
+    });
+
+    const paymentMethods = await prisma.outletPaymentMethod.findMany({
+      where: { id: { in: paymentGroupBy.map((p) => p.outletPaymentMethodId) } },
+      include: {
+        paymentMethod: {
+          select: {
+            id: true,
+            name: true,
+            displayName: true,
+          },
+        },
+      },
+    });
+
+    const byPaymentMethod = paymentGroupBy.map((group) => {
+      const meta = paymentMethods.find(
+        (p) => p.id === group.outletPaymentMethodId,
+      );
+
+      return {
+        paymentMethodId: group.outletPaymentMethodId.toString(),
+        name: meta?.paymentMethod.displayName,
+        totalTransactions: group._count.id,
+        totalRevenue: Number(group._sum.totalPrice || 0),
+      };
+    });
+
+    // QUERY 3: Rekap Per Kasir / User (Staff Performance)
+    const userGroupBy = await prisma.transaction.groupBy({
+      by: ["userId"],
+      where: whereCondition,
+      _count: { id: true },
+      _sum: { totalPrice: true },
+    });
+
+    const users = await prisma.user.findMany({
+      where: { id: { in: userGroupBy.map((u) => u.userId) } },
+    });
+
+    const byCashier = userGroupBy.map((group) => {
+      const meta = users.find((u) => u.id === group.userId);
+      return {
+        userId: group.userId,
+        name: meta?.name || "Kasir Sistem",
+        totalTransactions: group._count.id,
+        totalRevenue: Number(group._sum.totalPrice || 0),
+      };
+    });
+
+    // QUERY 4: Hitung Total Row & List Transaksi Offline
+    const [totalRow, contents] = await prisma.$transaction([
+      prisma.transaction.count({ where: whereCondition }),
       prisma.transaction.findMany({
         where: whereCondition,
-        skip: (page - 1) * limit,
+        orderBy: { transactionTime: "desc" },
         take: limit,
-        orderBy: { transactionTime: "asc" },
+        skip: skip,
         include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              username: true,
-            },
-          },
-          userShift: {
-            select: {
-              id: true,
-              shift: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          outlet: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
           outletPaymentMethod: {
             select: {
-              id: true,
               paymentMethod: {
-                select: {
-                  id: true,
-                  name: true,
-                },
+                select: { name: true, displayName: true },
               },
             },
           },
+          user: { select: { name: true } },
           transactionDetails: true,
-          transactionDiscount: true,
-        },
-      }),
-
-      // 2. Total baris (Tetap sama)
-      prisma.transaction.count({ where: whereCondition }),
-
-      // 3. Breakdown per payment (Tetap sama)
-      prisma.transaction.groupBy({
-        by: ["outletPaymentMethodId"],
-        where: whereCondition,
-        _sum: { totalPrice: true },
-        _count: { id: true },
-      }),
-
-      // 💡 4. QUERY BARU: Agregasi total nominal diskon yang terpakai hari ini secara global
-      prisma.transaction.aggregate({
-        where: whereCondition,
-        _sum: {
-          totalDiscount: true, // Menghitung akumulasi kolom totalDiscount
+          outlet: { select: { name: true } },
         },
       }),
     ]);
 
-  // Mengolah payment methods detail
-  const fullPaymentMethods = await prisma.outletPaymentMethod.findMany({
-    where: { outletId: Number(session?.user.outletId) },
-    include: {
-      paymentMethod: {
-        select: {
-          id: true,
-          name: true,
-          displayName: true,
-        },
+    return buildResponse({
+      totalRow,
+      page,
+      limit,
+      summary: {
+        totalTransactions: summaryAggregate._count.id,
+        totalItemSales: summaryAggregate._sum.totalItem || 0,
+        totalRevenue: Number(summaryAggregate._sum.totalPrice || 0),
       },
-    },
-  });
-
-  let grandTotalSales = 0;
-  const paymentBreakdown = paymentSummary.map((item) => {
-    const detail = fullPaymentMethods.find(
-      (m) => m.id === item.outletPaymentMethodId,
-    );
-    const totalAmount = Number(item._sum.totalPrice) || 0;
-
-    grandTotalSales += totalAmount;
-
-    return {
-      paymentMethodId: detail?.paymentMethodId,
-      paymentMethodName: detail?.paymentMethod.displayName || "Unknown",
-      totalSales: totalAmount,
-      transactionCount: item._count.id,
-    };
-  });
-
-  // Ambil nilai total diskon bersih (jika null, default ke 0)
-  const grandTotalDiscount = Number(discountSummary._sum.totalDiscount) || 0;
-
-  const resSales = {
-    contents: salesData,
-    totalRow: totalRow,
-    page,
-    limit,
-    summary: {
-      grandTotalSales: grandTotalSales, // Total uang masuk bersih setelah diskon
-      grandTotalDiscount: grandTotalDiscount, // 💡 Total potongan diskon yang diberikan ke pelanggan
-      grossSales: grandTotalSales + grandTotalDiscount, // 💡 Omset kotor sebelum dipotong diskon
-      totalTransactions: totalRow,
-      paymentBreakdown: paymentBreakdown,
-    },
-  };
-
-  return buildResponse(resSales);
+      byPaymentMethod,
+      byCashier,
+      contents,
+    });
+  } catch (error) {
+    console.error("OFFLINE_SALES_ROUTE_ERROR:", error);
+    return buildResponse({ status: 500, message: "Internal Server Error" });
+  }
 };

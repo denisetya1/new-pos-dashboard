@@ -52,7 +52,7 @@ const PriceStockPage = () => {
   const params = Object.fromEntries(searchParams.entries());
 
   const limit = 50;
-  const { categoryId, brandId, search, sort, page } = params;
+  const { categoryId, brandId, search, page } = params;
   const outletId = session?.user.outletId?.toString();
 
   const qs = queryString.stringify(params);
@@ -70,7 +70,7 @@ const PriceStockPage = () => {
   }: { contents: ProductWithStocks[]; totalRow: number } =
     productsData?.data || {};
 
-  const currentPage = parseInt(page) || 1;
+  const currentPage = Number(page) || 1;
 
   useEffect(() => {
     if (isError) {
@@ -80,10 +80,6 @@ const PriceStockPage = () => {
       });
     }
   }, [isError]);
-
-  useEffect(() => {
-    console.log("modalOpen", modalOpen);
-  }, [modalOpen]);
 
   return (
     <div>
