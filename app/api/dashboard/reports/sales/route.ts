@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { buildResponse } from "@/lib/response";
 import { parseISO, startOfDay, endOfDay } from "date-fns";
+import type { Prisma } from "@/generated/prisma/client";
 
 export const GET = async (req: NextRequest) => {
   try {
@@ -13,6 +14,7 @@ export const GET = async (req: NextRequest) => {
     const { searchParams } = new URL(req.url);
     const startDateParam = searchParams.get("startDate");
     const endDateParam = searchParams.get("endDate");
+    const shiftIdParam = searchParams.get("shiftId");
     const outletId = session?.user?.outletId;
 
     const page = Number(searchParams.get("page") || "1");
@@ -20,7 +22,7 @@ export const GET = async (req: NextRequest) => {
     const skip = (page - 1) * limit;
 
     // 💡 Filter Dasar: Hanya ambil transaksi OFFLINE (marketplaceId: null)
-    const whereCondition: any = {
+    const whereCondition: Prisma.TransactionWhereInput = {
       marketplaceId: null,
       deletedAt: null,
       outletId: BigInt(outletId),
@@ -32,6 +34,12 @@ export const GET = async (req: NextRequest) => {
       gte: startOfDay(start),
       lte: endOfDay(end),
     };
+
+    if (shiftIdParam && shiftIdParam !== "all") {
+      whereCondition.userShift = {
+        shiftId: BigInt(shiftIdParam),
+      };
+    }
 
     // QUERY 1: Ringkasan Utama (Total Transaksi, Item, Omset)
     const summaryAggregate = await prisma.transaction.aggregate({
@@ -113,6 +121,16 @@ export const GET = async (req: NextRequest) => {
             },
           },
           user: { select: { name: true } },
+          userShift: {
+            select: {
+              shift: {
+                select: {
+                  name: true,
+                  workingHours: true,
+                },
+              },
+            },
+          },
           transactionDetails: true,
           outlet: { select: { name: true } },
         },

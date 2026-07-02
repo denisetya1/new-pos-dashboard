@@ -29,6 +29,12 @@ type OfflineTransaction = {
   user?: {
     name?: string | null;
   } | null;
+  userShift?: {
+    shift?: {
+      name?: string | null;
+      workingHours?: string | null;
+    } | null;
+  } | null;
   outletPaymentMethod?: {
     paymentMethod?: {
       id: string;
@@ -155,8 +161,13 @@ export const OfflineSalesTable = ({
                     </TableCell>
 
                     {/* KASIR */}
-                    <TableCell className="font-medium text-gray-700 dark:text-gray-300">
-                      {tx.user?.name || "Sistem Kasir"}
+                    <TableCell>
+                      <span className="block font-medium text-gray-700 dark:text-gray-300">
+                        {tx.user?.name || "Sistem Kasir"}
+                      </span>
+                      <span className="mt-0.5 block text-[10px] text-gray-400">
+                        {tx.userShift?.shift?.name || "Shift -"}
+                      </span>
                     </TableCell>
 
                     {/* METODE BAYAR (BERWARNA) */}
