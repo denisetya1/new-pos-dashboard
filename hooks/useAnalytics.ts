@@ -1,4 +1,7 @@
-import { MonthlySummaryApiResponse } from "@/types/analytics";
+import {
+  DailyRevenue,
+  MonthlySummaryApiResponse,
+} from "@/types/analytics";
 import { useQuery } from "@tanstack/react-query";
 
 export const useGetRevenueSummary = () => {
@@ -19,6 +22,22 @@ export const useGetMonthlySummary = () => {
       return fetch("/api/dashboard/analytics/monthly", {
         method: "GET",
       }).then((res) => res.json() as Promise<MonthlySummaryApiResponse>);
+    },
+  });
+};
+
+export const useGetDailyRevenue = () => {
+  return useQuery({
+    queryKey: ["analytics", "daily-revenue", 30],
+    queryFn: () => {
+      return fetch("/api/dashboard/analytics/daily-revenue", {
+        method: "GET",
+      }).then(
+        (res) =>
+          res.json() as Promise<{
+            data: DailyRevenue[];
+          }>,
+      );
     },
   });
 };

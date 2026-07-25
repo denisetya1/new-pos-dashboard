@@ -1,6 +1,7 @@
 "use client";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
+  useGetDailyRevenue,
   useGetDailyTraffics,
   useGetHourlyTraffics,
   useGetMonthlySummary,
@@ -14,9 +15,11 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import MonthlyTransactionChart from "../components/MonthlyTransactionCountChart";
 import HourlyTrafficChart from "../components/HourlyTrafficChart";
 import DailyTrafficChart from "../components/DailyTrafficChart";
+import DailyRevenueChart from "../components/DailyRevenueChart";
 
 const HomePage = () => {
   const { data: revenueSummary } = useGetRevenueSummary();
+  const { data: dailyRevenue } = useGetDailyRevenue();
   const { data: monthlyRevenue } = useGetMonthlySummary();
   const { data: HourlyData } = useGetHourlyTraffics();
   const { data: DailyData } = useGetDailyTraffics();
@@ -137,6 +140,15 @@ const HomePage = () => {
           </motion.div>
         )}
       </div>
+
+      <Card className="w-full rounded-xl shadow-none">
+        <CardHeader>
+          <CardTitle>Omzet Harian 30 Hari Terakhir</CardTitle>
+        </CardHeader>
+        <CardContent className="h-80">
+          <DailyRevenueChart data={dailyRevenue?.data || []} />
+        </CardContent>
+      </Card>
 
       {/* Chart */}
       <div className="flex flex-col sm:flex-row justify-between gap-5">
