@@ -492,6 +492,7 @@ model TransactionDetail {
   categoryId         BigInt                              @map("category_id")
   brandId            BigInt                              @map("brand_id")
   detailCategory     transaction_details_detail_category @default(PRODUCT) @map("detail_category")
+  productType         transaction_details_detail_category @default(PRODUCT) @map("product_type")
   qty                Int                                 @map("qty")
   sellPrice          Decimal                             @map("sell_price") @db.Decimal(10, 2)
   discountPercentage Int?                                @map("discount_percentage")
