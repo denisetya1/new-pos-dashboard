@@ -86,7 +86,7 @@ export const Navigation: React.FC<SidebarProps> = ({ items }) => {
   };
 
   return (
-    <aside className="relative z-[100] overflow-visible">
+    <aside className="relative z-100 overflow-visible">
       <nav className="p-2 space-y-1">
         {items.map((item) => {
           const Icon = item.icon;
@@ -99,16 +99,14 @@ export const Navigation: React.FC<SidebarProps> = ({ items }) => {
             const active = pathname === item.href;
 
             return (
-              <Link key={item.label} href={item.href}>
+              <Link key={item.label} href={item.href} prefetch={false}>
                 <Button
                   variant="ghost"
                   onClick={handleMenuClick}
                   title={collapsed && !mobileOpen ? item.label : undefined}
                   className={`w-full justify-start gap-3 transition-colors hover:bg-brand-50 hover:text-brand-600 hover:cursor-pointer ${
                     collapsed && !mobileOpen ? "justify-center px-0" : ""
-                  } ${
-                    active ? "bg-brand-100 text-brand-600" : ""
-                  }`}
+                  } ${active ? "bg-brand-100 text-brand-600" : ""}`}
                 >
                   {Icon && <Icon size={18} />}
                   {(!collapsed || mobileOpen) && <span>{item.label}</span>}
@@ -126,7 +124,7 @@ export const Navigation: React.FC<SidebarProps> = ({ items }) => {
 
             if (collapsed && !mobileOpen) {
               return (
-                <div key={item.label} className="group relative z-[100]">
+                <div key={item.label} className="group relative z-100">
                   <div>
                     <Button
                       variant="ghost"
@@ -138,7 +136,7 @@ export const Navigation: React.FC<SidebarProps> = ({ items }) => {
                       {Icon && <Icon size={18} />}
                     </Button>
                   </div>
-                  <div className="invisible absolute left-full top-0 z-[100] ml-2 min-w-52 rounded-md border bg-white p-2 text-gray-900 opacity-0 shadow-lg transition-all duration-150 group-hover:visible group-hover:opacity-100">
+                  <div className="invisible absolute left-full top-0 z-100 ml-2 min-w-52 rounded-md border bg-white p-2 text-gray-900 opacity-0 shadow-lg transition-all duration-150 group-hover:visible group-hover:opacity-100">
                     <div className="px-2 py-1.5 text-sm font-semibold">
                       {item.label}
                     </div>
@@ -155,6 +153,7 @@ export const Navigation: React.FC<SidebarProps> = ({ items }) => {
                         >
                           <Link
                             href={child.href}
+                            prefetch={false}
                             onClick={handleMenuClick}
                           >
                             {child.label}
@@ -197,7 +196,11 @@ export const Navigation: React.FC<SidebarProps> = ({ items }) => {
                       {item.children.map((child) => {
                         const active = pathname === child.href;
                         return (
-                          <Link key={child.label} href={child.href}>
+                          <Link
+                            key={child.label}
+                            href={child.href}
+                            prefetch={false}
+                          >
                             <Button
                               variant="ghost"
                               onClick={handleMenuClick}

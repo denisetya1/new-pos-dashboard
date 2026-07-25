@@ -101,7 +101,7 @@ const PriceStockPage = () => {
         <TablePagination
           currentPage={currentPage}
           limit={limit}
-          totalPages={Math.floor(totalRow / limit)}
+          totalPages={Math.ceil(totalRow / limit)}
         />
       </div>
       <Card className="p-0">
@@ -369,7 +369,7 @@ const PriceStockPage = () => {
         <TablePagination
           currentPage={currentPage}
           limit={limit}
-          totalPages={Math.floor(totalRow / limit)}
+          totalPages={Math.ceil(totalRow / limit)}
         />
       </div>
 

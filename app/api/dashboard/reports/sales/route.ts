@@ -15,6 +15,9 @@ export const GET = async (req: NextRequest) => {
     const startDateParam = searchParams.get("startDate");
     const endDateParam = searchParams.get("endDate");
     const shiftIdParam = searchParams.get("shiftId");
+    const outletPaymentMethodIdParam = searchParams.get(
+      "outletPaymentMethodId",
+    );
     const outletId = session?.user?.outletId;
 
     const page = Number(searchParams.get("page") || "1");
@@ -39,6 +42,15 @@ export const GET = async (req: NextRequest) => {
       whereCondition.userShift = {
         shiftId: BigInt(shiftIdParam),
       };
+    }
+
+    if (
+      outletPaymentMethodIdParam &&
+      outletPaymentMethodIdParam !== "all"
+    ) {
+      whereCondition.outletPaymentMethodId = BigInt(
+        outletPaymentMethodIdParam,
+      );
     }
 
     // QUERY 1: Ringkasan Utama (Total Transaksi, Item, Omset)
