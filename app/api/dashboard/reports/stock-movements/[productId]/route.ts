@@ -23,9 +23,11 @@ export const GET = async (
   const startDate =
     req?.nextUrl?.searchParams.get("startDate") ||
     format(subDays(new Date(), 30), "yyyy-MM-dd");
-  const endDate =
+  let endDate =
     req?.nextUrl?.searchParams.get("endDate") ||
-    format(addDays(new Date(), 1), "yyyy-MM-dd");
+    format(new Date(), "yyyy-MM-dd");
+
+  endDate = format(addDays(new Date(endDate), 1), "yyyy-MM-dd");
 
   const history: history[] = [];
 
