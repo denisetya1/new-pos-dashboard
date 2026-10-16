@@ -15,11 +15,12 @@ import { useMobileSidebarToggle } from "@/stores/mobileSidebarToggle";
 import { Navigation } from "./components/Navigation";
 import Sidebar from "./components/Sidebar";
 import { SessionProvider, signOut, useSession } from "next-auth/react";
+import type { Session } from "next-auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Bounce, ToastContainer } from "react-toastify";
 import OutletInfo from "./components/OutletInfo";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { menuConfig } from "@/constants/menus";
 
@@ -69,15 +70,18 @@ function UserMenu() {
 
 export default function DashboardShell({
   children,
+  session,
 }: Readonly<{
   children: React.ReactNode;
+  session: Session;
 }>) {
   const [isLoading, setIsLoading] = useState(true);
   const { toggleCollapse } = useSidebarToggle();
   const { toggleMobileOpen } = useMobileSidebarToggle();
+  const finishLoading = useCallback(() => setIsLoading(false), []);
 
   return (
-    <SessionProvider>
+    <SessionProvider session={session}>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <div className="flex min-h-screen max-w-screen bg-gray-50 text-gray-900">
@@ -113,7 +117,7 @@ export default function DashboardShell({
                       <PanelLeft className="h-5 w-5" />
                     </Button>
 
-                    <OutletInfo onFinishLoading={() => setIsLoading(false)} />
+                    <OutletInfo onFinishLoading={finishLoading} />
                   </div>
 
                   <div className="hidden md:flex items-center gap-4 ">

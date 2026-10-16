@@ -21,29 +21,50 @@ interface MonthlySummary {
   onlineCount: number;
 }
 
+interface MonthlyAggregate {
+  monthKey: string;
+  totalRevenue: number | string | null;
+  totalCount: bigint;
+  offlineRevenue: number | string | null;
+  offlineCount: bigint;
+  onlineRevenue: number | string | null;
+  onlineCount: bigint;
+}
+
 export async function GET() {
   const session = await auth();
 
   try {
     const outletId = Number(session?.user.outletId);
 
+    if (!session || !Number.isFinite(outletId) || outletId <= 0) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     // 1. Tentukan rentang 12 bulan ke belakang dari bulan sekarang
     const now = new UTCDate();
     const startPeriod = startOfMonth(subMonths(now, 11)); // 11 bulan lalu dari sekarang
     const endPeriod = endOfMonth(now); // Akhir bulan ini
 
-    // 2. Ambil transaksi dalam rentang 12 bulan tersebut
-    const transactions = await prisma.transaction.findMany({
-      where: {
-        createdAt: { gte: startPeriod, lte: endPeriod },
-        outletId: outletId,
-      },
-      include: {
-        outletPaymentMethod: {
-          select: { paymentMethodId: true },
-        },
-      },
-    });
+    // Agregasikan di database agar puluhan ribu transaksi tidak dikirim ke Node.js.
+    const aggregates = await prisma.$queryRaw<MonthlyAggregate[]>`
+      SELECT
+        DATE_FORMAT(t.created_at, '%Y-%m') AS monthKey,
+        COALESCE(SUM(t.total_price), 0) AS totalRevenue,
+        COUNT(*) AS totalCount,
+        COALESCE(SUM(CASE WHEN opm.payment_method_id = 4 THEN 0 ELSE t.total_price END), 0) AS offlineRevenue,
+        SUM(CASE WHEN opm.payment_method_id = 4 THEN 0 ELSE 1 END) AS offlineCount,
+        COALESCE(SUM(CASE WHEN opm.payment_method_id = 4 THEN t.total_price ELSE 0 END), 0) AS onlineRevenue,
+        SUM(CASE WHEN opm.payment_method_id = 4 THEN 1 ELSE 0 END) AS onlineCount
+      FROM transactions t
+      INNER JOIN outlet_payment_methods opm
+        ON opm.id = t.outlet_payment_method_id
+      WHERE t.outlet_id = ${outletId}
+        AND t.created_at >= ${startPeriod}
+        AND t.created_at <= ${endPeriod}
+      GROUP BY DATE_FORMAT(t.created_at, '%Y-%m')
+      ORDER BY monthKey ASC
+    `;
 
     // 3. Generate list 12 bulan secara urut (Interval generator)
     const intervalBulan = eachMonthOfInterval({
@@ -73,26 +94,18 @@ export async function GET() {
       };
     });
 
-    // 4. Proses Pengelompokkan data Transaksi
-    transactions.forEach((tx) => {
-      const txDate = new UTCDate(tx.createdAt);
-      const monthKey = format(txDate, "yyyy-MM");
-      const price = Number(tx.totalPrice) || 0;
-      const paymentMethodId = tx.outletPaymentMethod?.paymentMethodId;
+    aggregates.forEach((row) => {
+      if (!monthlyData[row.monthKey]) return;
 
-      // Pastikan data masuk ke slot bulan yang tepat (menghindari bug jika ada data rembes)
-      if (monthlyData[monthKey]) {
-        monthlyData[monthKey].totalRevenue += price;
-        monthlyData[monthKey].totalCount += 1;
-
-        if (paymentMethodId === 4) {
-          monthlyData[monthKey].onlineRevenue += price;
-          monthlyData[monthKey].onlineCount += 1;
-        } else {
-          monthlyData[monthKey].offlineRevenue += price;
-          monthlyData[monthKey].offlineCount += 1;
-        }
-      }
+      monthlyData[row.monthKey] = {
+        ...monthlyData[row.monthKey],
+        totalRevenue: Number(row.totalRevenue || 0),
+        totalCount: Number(row.totalCount),
+        offlineRevenue: Number(row.offlineRevenue || 0),
+        offlineCount: Number(row.offlineCount),
+        onlineRevenue: Number(row.onlineRevenue || 0),
+        onlineCount: Number(row.onlineCount),
+      };
     });
 
     // 5. Kembalikan data berupa Array yang terurut rapi dari 12 bulan lalu ke sekarang
