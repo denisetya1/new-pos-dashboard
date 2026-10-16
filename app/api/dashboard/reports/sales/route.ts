@@ -53,33 +53,74 @@ export const GET = async (req: NextRequest) => {
       );
     }
 
-    // QUERY 1: Ringkasan Utama (Total Transaksi, Item, Omset)
-    const summaryAggregate = await prisma.transaction.aggregate({
-      where: whereCondition,
-      _count: { id: true },
-      _sum: { totalItem: true, totalPrice: true },
-    });
+    const [summaryAggregate, paymentGroupBy, userGroupBy, contents] =
+      await Promise.all([
+        prisma.transaction.aggregate({
+          where: whereCondition,
+          _count: { id: true },
+          _sum: { totalItem: true, totalPrice: true },
+        }),
+        prisma.transaction.groupBy({
+          by: ["outletPaymentMethodId"],
+          where: whereCondition,
+          _count: { id: true },
+          _sum: { totalPrice: true },
+        }),
+        prisma.transaction.groupBy({
+          by: ["userId"],
+          where: whereCondition,
+          _count: { id: true },
+          _sum: { totalPrice: true },
+        }),
+        prisma.transaction.findMany({
+          where: whereCondition,
+          orderBy: { transactionTime: "desc" },
+          take: limit,
+          skip,
+          include: {
+            outletPaymentMethod: {
+              select: {
+                paymentMethod: {
+                  select: { name: true, displayName: true },
+                },
+              },
+            },
+            user: { select: { name: true } },
+            userShift: {
+              select: {
+                shift: {
+                  select: {
+                    name: true,
+                    workingHours: true,
+                  },
+                },
+              },
+            },
+            transactionDetails: true,
+            outlet: { select: { name: true } },
+          },
+        }),
+      ]);
 
-    // QUERY 2: Rekap Per Metode Pembayaran (Cash, EDC, QRIS, dll.)
-    const paymentGroupBy = await prisma.transaction.groupBy({
-      by: ["outletPaymentMethodId"],
-      where: whereCondition,
-      _count: { id: true },
-      _sum: { totalPrice: true },
-    });
-
-    const paymentMethods = await prisma.outletPaymentMethod.findMany({
-      where: { id: { in: paymentGroupBy.map((p) => p.outletPaymentMethodId) } },
-      include: {
-        paymentMethod: {
-          select: {
-            id: true,
-            name: true,
-            displayName: true,
+    const [paymentMethods, users] = await Promise.all([
+      prisma.outletPaymentMethod.findMany({
+        where: {
+          id: { in: paymentGroupBy.map((p) => p.outletPaymentMethodId) },
+        },
+        include: {
+          paymentMethod: {
+            select: {
+              id: true,
+              name: true,
+              displayName: true,
+            },
           },
         },
-      },
-    });
+      }),
+      prisma.user.findMany({
+        where: { id: { in: userGroupBy.map((u) => u.userId) } },
+      }),
+    ]);
 
     const byPaymentMethod = paymentGroupBy.map((group) => {
       const meta = paymentMethods.find(
@@ -94,18 +135,6 @@ export const GET = async (req: NextRequest) => {
       };
     });
 
-    // QUERY 3: Rekap Per Kasir / User (Staff Performance)
-    const userGroupBy = await prisma.transaction.groupBy({
-      by: ["userId"],
-      where: whereCondition,
-      _count: { id: true },
-      _sum: { totalPrice: true },
-    });
-
-    const users = await prisma.user.findMany({
-      where: { id: { in: userGroupBy.map((u) => u.userId) } },
-    });
-
     const byCashier = userGroupBy.map((group) => {
       const meta = users.find((u) => u.id === group.userId);
       return {
@@ -116,41 +145,8 @@ export const GET = async (req: NextRequest) => {
       };
     });
 
-    // QUERY 4: Hitung Total Row & List Transaksi Offline
-    const [totalRow, contents] = await prisma.$transaction([
-      prisma.transaction.count({ where: whereCondition }),
-      prisma.transaction.findMany({
-        where: whereCondition,
-        orderBy: { transactionTime: "desc" },
-        take: limit,
-        skip: skip,
-        include: {
-          outletPaymentMethod: {
-            select: {
-              paymentMethod: {
-                select: { name: true, displayName: true },
-              },
-            },
-          },
-          user: { select: { name: true } },
-          userShift: {
-            select: {
-              shift: {
-                select: {
-                  name: true,
-                  workingHours: true,
-                },
-              },
-            },
-          },
-          transactionDetails: true,
-          outlet: { select: { name: true } },
-        },
-      }),
-    ]);
-
     return buildResponse({
-      totalRow,
+      totalRow: summaryAggregate._count.id,
       page,
       limit,
       summary: {

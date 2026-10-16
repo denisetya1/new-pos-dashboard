@@ -476,6 +476,7 @@ model Transaction {
 
   @@index([outletId], map: "transactions_outlet_id_fkey")
   @@index([outletId, createdAt], map: "transactions_outlet_id_created_at_idx")
+  @@index([outletId, marketplaceId, deletedAt, transactionTime], map: "transactions_offline_sales_idx")
   @@index([outletPaymentMethodId], map: "transactions_outlet_payment_method_id_fkey")
   @@index([userId], map: "transactions_user_id_fkey")
   @@index([userShiftId], map: "transactions_user_shift_id_fkey")
