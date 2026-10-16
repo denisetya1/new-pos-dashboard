@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { buildResponse } from "@/lib/response";
 import { parseISO, startOfDay, endOfDay } from "date-fns";
+import type { Prisma } from "@/generated/prisma/client";
 
 export const GET = async (req: NextRequest) => {
   try {
@@ -23,7 +24,7 @@ export const GET = async (req: NextRequest) => {
     const limit = Number(searchParams.get("limit") || "50");
     const skip = (page - 1) * limit;
 
-    const whereCondition: any = {
+    const whereCondition: Prisma.TransactionWhereInput = {
       outletId: BigInt(outletId),
       marketplaceId: {
         not: null,
@@ -38,39 +39,77 @@ export const GET = async (req: NextRequest) => {
       lte: endOfDay(end),
     };
 
-    // 3. QUERY 1: Ambil Ringkasan Utama
-    const summaryAggregate = await prisma.transaction.aggregate({
-      where: whereCondition,
-      _count: {
-        id: true,
-      },
-      _sum: {
-        totalItem: true,
-        totalPrice: true,
-      },
-    });
+    const [summaryAggregate, marketplaceGroupBy, courierGroupBy, contents] =
+      await Promise.all([
+        prisma.transaction.aggregate({
+          where: whereCondition,
+          _count: { id: true },
+          _sum: { totalItem: true, totalPrice: true },
+        }),
+        prisma.transaction.groupBy({
+          by: ["marketplaceId"],
+          where: whereCondition,
+          _count: { id: true },
+          _sum: { totalPrice: true },
+        }),
+        prisma.transaction.groupBy({
+          by: ["courierId"],
+          where: whereCondition,
+          _count: { id: true },
+          _sum: { totalPrice: true },
+        }),
+        prisma.transaction.findMany({
+          where: whereCondition,
+          orderBy: { transactionTime: "desc" },
+          take: limit,
+          skip,
+          include: {
+            marketplace: { select: { name: true, color: true, logo: true } },
+            courier: { select: { name: true, color: true, logo: true } },
+            user: { select: { name: true } },
+            transactionDetails: true,
+            transactionDiscount: true,
+            outlet: { select: { name: true } },
+            userShift: {
+              select: {
+                shift: { select: { name: true } },
+              },
+            },
+            outletPaymentMethod: {
+              include: {
+                paymentMethod: {
+                  select: {
+                    id: true,
+                    name: true,
+                    displayName: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
+      ]);
 
-    // 4. QUERY 2: Rekap Per Marketplace
-    const marketplaceGroupBy = await prisma.transaction.groupBy({
-      by: ["marketplaceId"],
-      where: whereCondition,
-      _count: {
-        id: true,
-      },
-      _sum: {
-        totalPrice: true,
-      },
-    });
-
-    const marketplaces = await prisma.marketplace.findMany({
-      where: {
-        id: {
-          in: marketplaceGroupBy
-            .map((m) => m.marketplaceId)
-            .filter(Boolean) as number[],
+    const [marketplaces, couriers] = await Promise.all([
+      prisma.marketplace.findMany({
+        where: {
+          id: {
+            in: marketplaceGroupBy
+              .map((m) => m.marketplaceId)
+              .filter(Boolean) as number[],
+          },
         },
-      },
-    });
+      }),
+      prisma.courier.findMany({
+        where: {
+          id: {
+            in: courierGroupBy
+              .map((c) => c.courierId)
+              .filter(Boolean) as number[],
+          },
+        },
+      }),
+    ]);
 
     const byMarketplace = marketplaceGroupBy.map((group) => {
       const meta = marketplaces.find((m) => m.id === group.marketplaceId);
@@ -82,28 +121,6 @@ export const GET = async (req: NextRequest) => {
         totalTransactions: group._count.id,
         totalRevenue: Number(group._sum.totalPrice || 0),
       };
-    });
-
-    // 5. QUERY 3: Rekap Per Kurir / Ekspedisi
-    const courierGroupBy = await prisma.transaction.groupBy({
-      by: ["courierId"],
-      where: whereCondition,
-      _count: {
-        id: true,
-      },
-      _sum: {
-        totalPrice: true,
-      },
-    });
-
-    const couriers = await prisma.courier.findMany({
-      where: {
-        id: {
-          in: courierGroupBy
-            .map((c) => c.courierId)
-            .filter(Boolean) as number[],
-        },
-      },
     });
 
     const byCourier = courierGroupBy.map((group) => {
@@ -118,52 +135,10 @@ export const GET = async (req: NextRequest) => {
       };
     });
 
-    // 💡 6. QUERY 4: Hitung Total Baris (totalRow) & Ambil Datanya
-    const [totalRow, contents] = await prisma.$transaction([
-      prisma.transaction.count({ where: whereCondition }),
-      prisma.transaction.findMany({
-        where: whereCondition,
-        orderBy: {
-          transactionTime: "desc",
-        },
-        take: limit,
-        skip: skip,
-        include: {
-          marketplace: { select: { name: true, color: true, logo: true } },
-          courier: { select: { name: true, color: true, logo: true } },
-          user: { select: { name: true } },
-          transactionDetails: true,
-          transactionDiscount: true,
-          outlet: { select: { name: true } },
-          userShift: {
-            select: {
-              shift: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
-          outletPaymentMethod: {
-            include: {
-              paymentMethod: {
-                select: {
-                  id: true,
-                  name: true,
-                  displayName: true,
-                },
-              },
-            },
-          },
-        },
-      }),
-    ]);
-
-    // 7. Return Hasil dengan Metadata Paginasi Lengkap
     return buildResponse({
-      totalRow, // 🌟 Berisi angka total baris (misal: 1291)
-      page, // 🌟 Halaman aktif saat ini
-      limit, // 🌟 Batasan baris per halaman
+      totalRow: summaryAggregate._count.id,
+      page,
+      limit,
       summary: {
         totalTransactions: summaryAggregate._count.id,
         totalItemSales: summaryAggregate._sum.totalItem || 0,
