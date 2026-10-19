@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 
-export const useGetOfflineSalesReport = (qs: String) => {
+export const useGetOfflineSalesReport = (qs: string) => {
   return useQuery({
-    queryKey: ["salesReport", qs],
+    queryKey: ["offlineSalesReport", qs],
     queryFn: () => {
       return fetch(
         `/api/dashboard/reports/sales${qs !== "" ? `?${qs}` : ""}`,
@@ -11,9 +11,9 @@ export const useGetOfflineSalesReport = (qs: String) => {
   });
 };
 
-export const useGetOnlineSalesReport = (qs: String) => {
+export const useGetOnlineSalesReport = (qs: string) => {
   return useQuery({
-    queryKey: ["salesReport", qs],
+    queryKey: ["onlineSalesReport", qs],
     queryFn: () => {
       return fetch(
         `/api/dashboard/reports/sales/online${qs !== "" ? `?${qs}` : ""}`,
