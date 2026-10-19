@@ -121,6 +121,8 @@ model Store {
   productStocks ProductStock[]
   products      Product[]
   suppliers     Suplier[]
+  members       Member[]
+  loyaltyPointTransactions LoyaltyPointTransaction[]
 
   @@map("stores")
 }
@@ -215,6 +217,7 @@ model Outlet {
   reqOutlets       StockRequest[] @relation("reqOutlet")
   transactions     Transaction[]
   userOutlets      UserOutlet[]
+  loyaltyPointTransactions LoyaltyPointTransaction[]
 
   @@index([storeId], map: "outlets_store_id_fkey")
   @@map("outlets")
@@ -643,6 +646,55 @@ model Courier {
   transactions Transaction[]
 
   @@map("couriers")
+}
+
+model Member {
+  id                       BigInt                    @id @default(autoincrement())
+  memberCode               String                    @map("member_code") @db.VarChar(50)
+  storeId                  BigInt                    @map("store_id")
+  name                     String                    @db.VarChar(191)
+  phone                    String                    @db.VarChar(30)
+  email                    String?                   @db.VarChar(191)
+  birthDate                DateTime?                 @map("birth_date") @db.Date
+  address                  String?                   @db.Text
+  points                   Int                       @default(0)
+  isActive                 Boolean                   @default(true) @map("is_active")
+  createdAt                DateTime                  @default(now()) @map("created_at")
+  updatedAt                DateTime?                 @updatedAt @map("updated_at")
+  deletedAt                DateTime?                 @map("deleted_at")
+  updatedBy                String?                   @default("") @map("updated_by")
+  store                    Store                     @relation(fields: [storeId], references: [id])
+  loyaltyPointTransactions LoyaltyPointTransaction[]
+
+  @@unique([storeId, memberCode], map: "members_store_id_member_code_key")
+  @@index([storeId, phone], map: "members_store_id_phone_idx")
+  @@index([storeId, isActive, name], map: "members_store_id_is_active_name_idx")
+  @@map("members")
+}
+
+model LoyaltyPointTransaction {
+  id            BigInt    @id @default(autoincrement())
+  memberId      BigInt    @map("member_id")
+  storeId       BigInt    @map("store_id")
+  outletId      BigInt?   @map("outlet_id")
+  type          String    @db.VarChar(20)
+  points        Int
+  balanceAfter  Int       @map("balance_after")
+  reason        String    @db.VarChar(255)
+  referenceType String?   @map("reference_type") @db.VarChar(50)
+  referenceId   String?   @map("reference_id") @db.VarChar(100)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime? @updatedAt @map("updated_at")
+  deletedAt     DateTime? @map("deleted_at")
+  updatedBy     String?   @default("") @map("updated_by")
+  member        Member    @relation(fields: [memberId], references: [id])
+  store         Store     @relation(fields: [storeId], references: [id])
+  outlet        Outlet?   @relation(fields: [outletId], references: [id])
+
+  @@index([memberId, createdAt], map: "loyalty_points_member_id_created_at_idx")
+  @@index([storeId, createdAt], map: "loyalty_points_store_id_created_at_idx")
+  @@index([outletId], map: "loyalty_points_outlet_id_idx")
+  @@map("loyalty_point_transactions")
 }
 
 model Privilege {

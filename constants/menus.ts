@@ -6,6 +6,7 @@ import {
   ScanBarcode,
   Store,
   Users,
+  UsersRound,
 } from "lucide-react";
 
 export const menuConfig: NavItem[] = [
@@ -49,6 +50,11 @@ export const menuConfig: NavItem[] = [
       { label: "Kategori", href: "/master-data/categories" },
       { label: "Jenis Perpindahan Stok", href: "/master-data/move-types" },
     ],
+  },
+  {
+    label: "Member",
+    icon: UsersRound,
+    href: "/members",
   },
   {
     label: "Manajemen Outlet",
