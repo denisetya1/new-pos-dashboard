@@ -110,6 +110,7 @@ export const GET = async (req: NextRequest) => {
         AND ps.outlet_id = ${outletId}
         AND ps.quantity > 0
         AND p.is_active = true
+        AND p.product_type = 'PRODUCT'
         AND ps.created_at <= ${cutoffDate}
         AND (sales.last_sold_at IS NULL OR sales.last_sold_at < ${cutoffDate})
         ${searchFilter}
@@ -130,6 +131,7 @@ export const GET = async (req: NextRequest) => {
         AND ps.outlet_id = ${outletId}
         AND ps.quantity > 0
         AND p.is_active = true
+        AND p.product_type = 'PRODUCT'
         AND ps.created_at <= ${cutoffDate}
         AND (sales.last_sold_at IS NULL OR sales.last_sold_at < ${cutoffDate})
         ${searchFilter}
