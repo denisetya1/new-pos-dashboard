@@ -39,6 +39,28 @@ export const GET = async (req: NextRequest) => {
     orderBy = { quantity: sortDirection };
   }
 
+  const stockScope = {
+    storeId: Number(session?.user.storeId),
+    outletId: Number(session?.user.outletId),
+  };
+
+  await prisma.stockMovement.updateMany({
+    where: {
+      direction: "IN",
+      deletedAt: null,
+      expiredDate: { not: null },
+      OR: [{ soldOut: false }, { soldOut: null }],
+      productStock: {
+        ...stockScope,
+        quantity: { lte: 0 },
+      },
+    },
+    data: {
+      soldOut: true,
+      updatedBy: String(session?.user.username),
+    },
+  });
+
   const expiredStocks = await prisma.stockMovement.findManyAndCount({
     where: {
       direction: "IN",
@@ -48,8 +70,8 @@ export const GET = async (req: NextRequest) => {
       },
       OR: [{ soldOut: false }, { soldOut: null }],
       productStock: {
-        storeId: Number(session?.user.storeId),
-        outletId: Number(session?.user.outletId),
+        ...stockScope,
+        quantity: { gt: 0 },
         product: {
           isActive: true,
           ...(search !== null && search !== ""
