@@ -53,6 +53,17 @@ export const useGetTopSellerReport = (qs: string) => {
   });
 };
 
+export const useGetDeadStockProducts = (qs: string) => {
+  return useQuery({
+    queryKey: ["dead-stock-products", qs],
+    queryFn: () => {
+      return fetch(`/api/dashboard/reports/products/dead-stock?${qs}`, {
+        method: "GET",
+      }).then((res) => handleRes(res));
+    },
+  });
+};
+
 export const useSetExpiredProductSoldOut = () => {
   return useMutation({
     mutationKey: ["set-expired-product-sold-out"],

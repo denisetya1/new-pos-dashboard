@@ -35,6 +35,7 @@ export const menuConfig: NavItem[] = [
       { label: "Penjualan Online", href: "/reports/sales/online" },
       // { label: "Barang Terjual", href: "/reports/products/sold" },
       { label: "Produk Terlaris", href: "/reports/products/top-sellers" },
+      { label: "Dead Stock", href: "/reports/products/dead-stock" },
       { label: "Barang Akan Expired", href: "/reports/products/expired" },
       { label: "Stok Barang Menipis", href: "/reports/stocks/low-stock" },
       // { label: "Perpindahan Stok", href: "/reports/stocks/movement" },
