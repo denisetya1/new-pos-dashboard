@@ -13,6 +13,7 @@ const memberSelect = {
   id: true,
   memberCode: true,
   name: true,
+  gender: true,
   phone: true,
   email: true,
   birthDate: true,
@@ -26,6 +27,7 @@ type MemberResponse = {
   id: bigint;
   memberCode: string;
   name: string;
+  gender: string | null;
   phone: string;
   email: string | null;
   birthDate: Date | null;
@@ -54,9 +56,38 @@ const getStoreContext = async () => {
   };
 };
 
+const normalizePhone = (value: string) => {
+  const digits = value.replace(/\D/g, "");
+
+  if (digits === "") {
+    return "";
+  }
+
+  if (digits.startsWith("62")) {
+    return `0${digits.slice(2)}`;
+  }
+
+  return digits.startsWith("0") ? digits : `0${digits}`;
+};
+
+const getPhoneCandidates = (phone: string) => {
+  const normalized = normalizePhone(phone);
+  const subscriberNumber = normalized.slice(1);
+
+  return Array.from(
+    new Set([
+      normalized,
+      subscriberNumber,
+      `62${subscriberNumber}`,
+      `+62${subscriberNumber}`,
+    ]),
+  );
+};
+
 const parseMemberPayload = (body: Record<string, unknown>) => {
   const name = String(body.name || "").trim();
-  const phone = String(body.phone || "").trim();
+  const phone = normalizePhone(String(body.phone || ""));
+  const genderValue = String(body.gender || "").trim().toUpperCase();
   const email = String(body.email || "").trim().toLowerCase();
   const address = String(body.address || "").trim();
   const birthDateValue = String(body.birthDate || "").trim();
@@ -67,6 +98,7 @@ const parseMemberPayload = (body: Record<string, unknown>) => {
   return {
     name,
     phone,
+    gender: genderValue || null,
     email: email || null,
     address: address || null,
     birthDate:
@@ -86,8 +118,12 @@ const validateMemberPayload = (
     return "Nomor telepon member wajib diisi.";
   }
 
-  if (member.phone.length < 8 || member.phone.length > 30) {
-    return "Nomor telepon harus terdiri dari 8 sampai 30 karakter.";
+  if (member.phone.length < 8 || member.phone.length > 15) {
+    return "Nomor telepon harus terdiri dari 8 sampai 15 digit.";
+  }
+
+  if (member.gender && !["MALE", "FEMALE"].includes(member.gender)) {
+    return "Jenis kelamin tidak valid.";
   }
 
   if (member.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(member.email)) {
@@ -169,7 +205,7 @@ export const POST = async (req: Request) => {
   const duplicatePhone = await prisma.member.findFirst({
     where: {
       storeId: context.storeId,
-      phone: memberPayload.phone,
+      phone: { in: getPhoneCandidates(memberPayload.phone) },
       isActive: true,
     },
     select: { id: true },
@@ -188,6 +224,7 @@ export const POST = async (req: Request) => {
       memberCode: `MBR-${randomUUID().slice(0, 8).toUpperCase()}`,
       storeId: context.storeId,
       name: memberPayload.name,
+      gender: memberPayload.gender,
       phone: memberPayload.phone,
       email: memberPayload.email,
       birthDate: memberPayload.birthDate,
@@ -230,7 +267,7 @@ export const PATCH = async (req: Request) => {
     prisma.member.findFirst({
       where: {
         storeId: context.storeId,
-        phone: memberPayload.phone,
+        phone: { in: getPhoneCandidates(memberPayload.phone) },
         isActive: true,
         NOT: { id },
       },
@@ -254,6 +291,7 @@ export const PATCH = async (req: Request) => {
     where: { id },
     data: {
       name: memberPayload.name,
+      gender: memberPayload.gender,
       phone: memberPayload.phone,
       email: memberPayload.email,
       birthDate: memberPayload.birthDate,

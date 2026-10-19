@@ -653,6 +653,7 @@ model Member {
   memberCode               String                    @map("member_code") @db.VarChar(50)
   storeId                  BigInt                    @map("store_id")
   name                     String                    @db.VarChar(191)
+  gender                   String?                   @db.VarChar(20)
   phone                    String                    @db.VarChar(30)
   email                    String?                   @db.VarChar(191)
   birthDate                DateTime?                 @map("birth_date") @db.Date

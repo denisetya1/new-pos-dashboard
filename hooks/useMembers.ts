@@ -5,6 +5,7 @@ export type MemberPayload = {
   id?: string;
   name: string;
   phone: string;
+  gender?: "" | "MALE" | "FEMALE";
   email?: string;
   birthDate?: string;
   address?: string;

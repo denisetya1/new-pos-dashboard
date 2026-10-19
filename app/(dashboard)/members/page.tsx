@@ -59,6 +59,7 @@ type MemberItem = {
   id: string;
   memberCode: string;
   name: string;
+  gender: "MALE" | "FEMALE" | null;
   phone: string;
   email: string | null;
   birthDate: string | null;
@@ -84,6 +85,7 @@ type PointTransaction = {
 const emptyMemberForm: MemberPayload = {
   name: "",
   phone: "",
+  gender: "",
   email: "",
   birthDate: "",
   address: "",
@@ -100,6 +102,12 @@ const getErrorMessage = (error: unknown, fallback: string) => {
   }
 
   return fallback;
+};
+
+const getGenderLabel = (gender: MemberItem["gender"]) => {
+  if (gender === "MALE") return "Laki-laki";
+  if (gender === "FEMALE") return "Perempuan";
+  return null;
 };
 
 const MembersPage = () => {
@@ -191,6 +199,7 @@ const MembersPage = () => {
       id: member.id,
       name: member.name,
       phone: member.phone,
+      gender: member.gender || "",
       email: member.email || "",
       birthDate: member.birthDate
         ? format(new Date(member.birthDate), "yyyy-MM-dd")
@@ -410,6 +419,11 @@ const MembersPage = () => {
                     <div className="text-xs text-gray-400">
                       {member.memberCode}
                     </div>
+                    {getGenderLabel(member.gender) && (
+                      <div className="text-xs text-gray-500">
+                        {getGenderLabel(member.gender)}
+                      </div>
+                    )}
                     <div className="mt-1 text-xs text-gray-500 md:hidden">
                       {member.phone}
                     </div>
@@ -546,6 +560,34 @@ const MembersPage = () => {
                     }))
                   }
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="member-gender">Jenis Kelamin</Label>
+                <Select
+                  value={memberForm.gender || "UNSPECIFIED"}
+                  onValueChange={(value) =>
+                    setMemberForm((current) => ({
+                      ...current,
+                      gender:
+                        value === "UNSPECIFIED"
+                          ? ""
+                          : (value as "MALE" | "FEMALE"),
+                    }))
+                  }
+                >
+                  <SelectTrigger
+                    id="member-gender"
+                    className="min-h-11"
+                    aria-label="Jenis kelamin"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="UNSPECIFIED">Belum ditentukan</SelectItem>
+                    <SelectItem value="MALE">Laki-laki</SelectItem>
+                    <SelectItem value="FEMALE">Perempuan</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="member-email">Email</Label>
