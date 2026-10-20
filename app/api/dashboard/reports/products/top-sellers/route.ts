@@ -19,6 +19,7 @@ const sortAndLimit = (items: ChartItem[], limit?: number) => {
 
 export const GET = async (req: NextRequest) => {
   const session = await auth();
+  const storeId = Number(session?.user.storeId);
   const searchParams = req.nextUrl.searchParams;
   const startDateParam = searchParams.get("startDate");
   const endDateParam = searchParams.get("endDate");
@@ -30,10 +31,21 @@ export const GET = async (req: NextRequest) => {
     ? endOfDay(parseISO(endDateParam))
     : endOfDay(new Date());
 
+  const excludedCategories = await prisma.category.findMany({
+    where: {
+      storeId,
+      name: "TEH",
+    },
+    select: { id: true },
+  });
+
   const where = {
     detailCategory: "PRODUCT" as const,
+    categoryId: {
+      notIn: excludedCategories.map((category) => category.id),
+    },
     transaction: {
-      storeId: Number(session?.user.storeId),
+      storeId,
       outletId: Number(session?.user.outletId),
       transactionTime: {
         gte: startDate,
