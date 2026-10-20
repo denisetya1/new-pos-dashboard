@@ -38,11 +38,20 @@ export const GET = async (req: NextRequest) => {
     },
     select: { id: true },
   });
+  const excludedProducts = await prisma.product.findMany({
+    where: {
+      storeId,
+      categoryId: {
+        in: excludedCategories.map((category) => category.id),
+      },
+    },
+    select: { id: true },
+  });
 
   const where = {
     detailCategory: "PRODUCT" as const,
-    categoryId: {
-      notIn: excludedCategories.map((category) => category.id),
+    productId: {
+      notIn: excludedProducts.map((product) => product.id),
     },
     transaction: {
       storeId,
