@@ -23,6 +23,7 @@ import OutletInfo from "./components/OutletInfo";
 import { useCallback, useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { menuConfig } from "@/constants/menus";
+import Link from "next/link";
 
 const queryClient = new QueryClient();
 
@@ -55,8 +56,9 @@ function UserMenu() {
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem>Profile</DropdownMenuItem>
-        <DropdownMenuItem>Settings</DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/settings/store">Konfigurasi Toko</Link>
+        </DropdownMenuItem>
         <DropdownMenuItem
           className="text-red-600 focus:text-red-600"
           onClick={handleLogout}

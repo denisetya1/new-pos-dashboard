@@ -4,6 +4,7 @@ import {
   Home,
   ScrollText,
   ScanBarcode,
+  SlidersHorizontal,
   Store,
   Users,
   UsersRound,
@@ -55,6 +56,11 @@ export const menuConfig: NavItem[] = [
     label: "Member",
     icon: UsersRound,
     href: "/members",
+  },
+  {
+    label: "Konfigurasi Toko",
+    icon: SlidersHorizontal,
+    href: "/settings/store",
   },
   {
     label: "Manajemen Outlet",
