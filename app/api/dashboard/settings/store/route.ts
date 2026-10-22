@@ -26,6 +26,7 @@ const storeConfigSelect = {
   name: true,
   pointRewardEnabled: true,
   pointEarningThreshold: true,
+  pointRedemptionValue: true,
 };
 
 const serializeStoreConfig = (store: {
@@ -33,11 +34,13 @@ const serializeStoreConfig = (store: {
   name: string;
   pointRewardEnabled: boolean;
   pointEarningThreshold: { toString(): string };
+  pointRedemptionValue: { toString(): string };
 }) => ({
   id: store.id.toString(),
   name: store.name,
   pointRewardEnabled: store.pointRewardEnabled,
   pointEarningThreshold: Number(store.pointEarningThreshold.toString()),
+  pointRedemptionValue: Number(store.pointRedemptionValue.toString()),
 });
 
 export const GET = async () => {
@@ -81,6 +84,7 @@ export const PATCH = async (req: Request) => {
   const name = String(body.name || "").trim();
   const pointRewardEnabled = body.pointRewardEnabled;
   const pointEarningThreshold = Number(body.pointEarningThreshold);
+  const pointRedemptionValue = Number(body.pointRedemptionValue);
 
   if (name.length < 2 || name.length > 191) {
     return buildErrorResponse(
@@ -110,6 +114,18 @@ export const PATCH = async (req: Request) => {
     );
   }
 
+  if (
+    !Number.isSafeInteger(pointRedemptionValue) ||
+    pointRedemptionValue < 1 ||
+    pointRedemptionValue > 1_000_000_000
+  ) {
+    return buildErrorResponse(
+      "VALIDATION_ERROR",
+      "Nilai konversi poin harus berupa angka bulat antara 1 dan 1.000.000.000.",
+      [],
+    );
+  }
+
   const existingStore = await prisma.store.findFirst({
     where: { id: context.storeId, isActive: true },
     select: { id: true },
@@ -125,6 +141,7 @@ export const PATCH = async (req: Request) => {
       name,
       pointRewardEnabled,
       pointEarningThreshold,
+      pointRedemptionValue,
       updatedBy: context.username,
     },
     select: storeConfigSelect,

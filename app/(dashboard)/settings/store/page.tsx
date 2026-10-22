@@ -27,6 +27,7 @@ const initialForm: StoreConfigPayload = {
   name: "",
   pointRewardEnabled: false,
   pointEarningThreshold: 10000,
+  pointRedemptionValue: 100,
 };
 
 const StoreConfigPage = () => {
@@ -42,6 +43,7 @@ const StoreConfigPage = () => {
         name: storeConfig.name,
         pointRewardEnabled: storeConfig.pointRewardEnabled,
         pointEarningThreshold: storeConfig.pointEarningThreshold,
+        pointRedemptionValue: storeConfig.pointRedemptionValue,
       });
     }
   }, [storeConfig]);
@@ -64,6 +66,16 @@ const StoreConfigPage = () => {
       payload.pointEarningThreshold < 1
     ) {
       toast.error("Nominal perolehan poin wajib diisi.", {
+        theme: "colored",
+      });
+      return;
+    }
+
+    if (
+      !Number.isSafeInteger(payload.pointRedemptionValue) ||
+      payload.pointRedemptionValue < 1
+    ) {
+      toast.error("Nilai konversi poin wajib diisi.", {
         theme: "colored",
       });
       return;
@@ -184,35 +196,66 @@ const StoreConfigPage = () => {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="point-earning-threshold">
-                Nominal Belanja untuk 1 Poin
-              </Label>
-              <NumericFormat
-                id="point-earning-threshold"
-                value={form.pointEarningThreshold}
-                thousandSeparator="."
-                decimalSeparator=","
-                prefix="Rp "
-                allowNegative={false}
-                decimalScale={0}
-                inputMode="numeric"
-                customInput={Input}
-                className="min-h-11"
-                disabled={!form.pointRewardEnabled}
-                onValueChange={(values) =>
-                  setForm((current) => ({
-                    ...current,
-                    pointEarningThreshold: Number(values.value || 0),
-                  }))
-                }
-              />
-              <p className="text-sm text-gray-600">
-                Setiap Rp
-                {form.pointEarningThreshold.toLocaleString("id-ID")} nilai
-                transaksi menghasilkan 1 poin. Sisa nominal tidak dibulatkan ke
-                atas.
-              </p>
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="point-earning-threshold">
+                  Nominal Belanja untuk 1 Poin
+                </Label>
+                <NumericFormat
+                  id="point-earning-threshold"
+                  value={form.pointEarningThreshold}
+                  thousandSeparator="."
+                  decimalSeparator=","
+                  prefix="Rp "
+                  allowNegative={false}
+                  decimalScale={0}
+                  inputMode="numeric"
+                  customInput={Input}
+                  className="min-h-11"
+                  disabled={!form.pointRewardEnabled}
+                  onValueChange={(values) =>
+                    setForm((current) => ({
+                      ...current,
+                      pointEarningThreshold: Number(values.value || 0),
+                    }))
+                  }
+                />
+                <p className="text-sm text-gray-600">
+                  Setiap Rp
+                  {form.pointEarningThreshold.toLocaleString("id-ID")} nilai
+                  transaksi menghasilkan 1 poin. Sisa nominal tidak dibulatkan
+                  ke atas.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="point-redemption-value">
+                  Nilai Rupiah untuk 1 Poin
+                </Label>
+                <NumericFormat
+                  id="point-redemption-value"
+                  value={form.pointRedemptionValue}
+                  thousandSeparator="."
+                  decimalSeparator=","
+                  prefix="Rp "
+                  allowNegative={false}
+                  decimalScale={0}
+                  inputMode="numeric"
+                  customInput={Input}
+                  className="min-h-11"
+                  disabled={!form.pointRewardEnabled}
+                  onValueChange={(values) =>
+                    setForm((current) => ({
+                      ...current,
+                      pointRedemptionValue: Number(values.value || 0),
+                    }))
+                  }
+                />
+                <p className="text-sm text-gray-600">
+                  Saat ditukarkan, 1 poin setara Rp
+                  {form.pointRedemptionValue.toLocaleString("id-ID")}.
+                </p>
+              </div>
             </div>
           </CardContent>
           <CardFooter className="justify-end border-t">
