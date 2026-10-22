@@ -28,6 +28,7 @@ const initialForm: StoreConfigPayload = {
   pointRewardEnabled: false,
   pointEarningThreshold: 10000,
   pointRedemptionValue: 100,
+  minimumRedemptionPoints: 100,
 };
 
 const StoreConfigPage = () => {
@@ -44,6 +45,7 @@ const StoreConfigPage = () => {
         pointRewardEnabled: storeConfig.pointRewardEnabled,
         pointEarningThreshold: storeConfig.pointEarningThreshold,
         pointRedemptionValue: storeConfig.pointRedemptionValue,
+        minimumRedemptionPoints: storeConfig.minimumRedemptionPoints,
       });
     }
   }, [storeConfig]);
@@ -76,6 +78,16 @@ const StoreConfigPage = () => {
       payload.pointRedemptionValue < 1
     ) {
       toast.error("Nilai konversi poin wajib diisi.", {
+        theme: "colored",
+      });
+      return;
+    }
+
+    if (
+      !Number.isSafeInteger(payload.minimumRedemptionPoints) ||
+      payload.minimumRedemptionPoints < 1
+    ) {
+      toast.error("Minimal penukaran poin wajib diisi.", {
         theme: "colored",
       });
       return;
@@ -196,7 +208,7 @@ const StoreConfigPage = () => {
               />
             </div>
 
-            <div className="grid gap-6 sm:grid-cols-2">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="point-earning-threshold">
                   Nominal Belanja untuk 1 Poin
@@ -254,6 +266,40 @@ const StoreConfigPage = () => {
                 <p className="text-sm text-gray-600">
                   Saat ditukarkan, 1 poin setara Rp
                   {form.pointRedemptionValue.toLocaleString("id-ID")}.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="minimum-redemption-points">
+                  Minimal Poin untuk Ditukarkan
+                </Label>
+                <NumericFormat
+                  id="minimum-redemption-points"
+                  value={form.minimumRedemptionPoints}
+                  thousandSeparator="."
+                  decimalSeparator=","
+                  suffix=" poin"
+                  allowNegative={false}
+                  decimalScale={0}
+                  inputMode="numeric"
+                  customInput={Input}
+                  className="min-h-11"
+                  disabled={!form.pointRewardEnabled}
+                  onValueChange={(values) =>
+                    setForm((current) => ({
+                      ...current,
+                      minimumRedemptionPoints: Number(values.value || 0),
+                    }))
+                  }
+                />
+                <p className="text-sm text-gray-600">
+                  Penukaran tersedia mulai{" "}
+                  {form.minimumRedemptionPoints.toLocaleString("id-ID")} poin
+                  {" "}atau senilai Rp
+                  {(
+                    form.minimumRedemptionPoints * form.pointRedemptionValue
+                  ).toLocaleString("id-ID")}
+                  .
                 </p>
               </div>
             </div>

@@ -27,6 +27,7 @@ const storeConfigSelect = {
   pointRewardEnabled: true,
   pointEarningThreshold: true,
   pointRedemptionValue: true,
+  minimumRedemptionPoints: true,
 };
 
 const serializeStoreConfig = (store: {
@@ -35,12 +36,14 @@ const serializeStoreConfig = (store: {
   pointRewardEnabled: boolean;
   pointEarningThreshold: { toString(): string };
   pointRedemptionValue: { toString(): string };
+  minimumRedemptionPoints: number;
 }) => ({
   id: store.id.toString(),
   name: store.name,
   pointRewardEnabled: store.pointRewardEnabled,
   pointEarningThreshold: Number(store.pointEarningThreshold.toString()),
   pointRedemptionValue: Number(store.pointRedemptionValue.toString()),
+  minimumRedemptionPoints: store.minimumRedemptionPoints,
 });
 
 export const GET = async () => {
@@ -85,6 +88,7 @@ export const PATCH = async (req: Request) => {
   const pointRewardEnabled = body.pointRewardEnabled;
   const pointEarningThreshold = Number(body.pointEarningThreshold);
   const pointRedemptionValue = Number(body.pointRedemptionValue);
+  const minimumRedemptionPoints = Number(body.minimumRedemptionPoints);
 
   if (name.length < 2 || name.length > 191) {
     return buildErrorResponse(
@@ -126,6 +130,18 @@ export const PATCH = async (req: Request) => {
     );
   }
 
+  if (
+    !Number.isSafeInteger(minimumRedemptionPoints) ||
+    minimumRedemptionPoints < 1 ||
+    minimumRedemptionPoints > 1_000_000_000
+  ) {
+    return buildErrorResponse(
+      "VALIDATION_ERROR",
+      "Minimal penukaran poin harus berupa angka bulat antara 1 dan 1.000.000.000.",
+      [],
+    );
+  }
+
   const existingStore = await prisma.store.findFirst({
     where: { id: context.storeId, isActive: true },
     select: { id: true },
@@ -142,6 +158,7 @@ export const PATCH = async (req: Request) => {
       pointRewardEnabled,
       pointEarningThreshold,
       pointRedemptionValue,
+      minimumRedemptionPoints,
       updatedBy: context.username,
     },
     select: storeConfigSelect,

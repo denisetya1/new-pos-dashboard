@@ -6,6 +6,7 @@ export type StoreConfigPayload = {
   pointRewardEnabled: boolean;
   pointEarningThreshold: number;
   pointRedemptionValue: number;
+  minimumRedemptionPoints: number;
 };
 
 const storeConfigUrl = "/api/dashboard/settings/store";

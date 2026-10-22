@@ -115,6 +115,7 @@ model Store {
   pointRewardEnabled    Boolean        @default(false) @map("point_reward_enabled")
   pointEarningThreshold Decimal        @default(10000) @map("point_earning_threshold") @db.Decimal(12, 2)
   pointRedemptionValue  Decimal        @default(100) @map("point_redemption_value") @db.Decimal(12, 2)
+  minimumRedemptionPoints Int          @default(100) @map("minimum_redemption_points")
   isActive              Boolean        @map("is_active")
   createdAt             DateTime       @default(now()) @map("created_at")
   updatedAt             DateTime?      @updatedAt @map("updated_at")
