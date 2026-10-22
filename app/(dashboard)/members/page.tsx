@@ -66,6 +66,7 @@ type MemberItem = {
   address: string | null;
   points: number;
   createdAt: string;
+  createdBy: string | null;
 };
 
 type PointTransaction = {
@@ -402,6 +403,7 @@ const MembersPage = () => {
                 <TableHead className="hidden md:table-cell">Kontak</TableHead>
                 <TableHead className="text-center">Poin</TableHead>
                 <TableHead className="hidden lg:table-cell">Terdaftar</TableHead>
+                <TableHead className="hidden lg:table-cell">Dibuat Oleh</TableHead>
                 <TableHead className="text-center">Aksi</TableHead>
               </TableRow>
             </TableHeader>
@@ -427,6 +429,9 @@ const MembersPage = () => {
                     <div className="mt-1 text-xs text-gray-500 md:hidden">
                       {member.phone}
                     </div>
+                    <div className="mt-1 text-xs text-gray-500 lg:hidden">
+                      Dibuat oleh {member.createdBy || "-"}
+                    </div>
                   </TableCell>
                   <TableCell className="hidden align-top md:table-cell">
                     <div>{member.phone}</div>
@@ -439,6 +444,9 @@ const MembersPage = () => {
                   </TableCell>
                   <TableCell className="hidden align-top lg:table-cell">
                     {format(new Date(member.createdAt), "dd MMM yyyy")}
+                  </TableCell>
+                  <TableCell className="hidden align-top lg:table-cell">
+                    {member.createdBy || "-"}
                   </TableCell>
                   <TableCell className="align-top">
                     <div className="flex justify-center gap-2">

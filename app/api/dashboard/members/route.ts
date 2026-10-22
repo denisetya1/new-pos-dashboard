@@ -21,6 +21,7 @@ const memberSelect = {
   points: true,
   isActive: true,
   createdAt: true,
+  createdBy: true,
 };
 
 type MemberResponse = {
@@ -35,6 +36,7 @@ type MemberResponse = {
   points: number;
   isActive: boolean;
   createdAt: Date;
+  createdBy: string | null;
 };
 
 const serializeMember = (member: MemberResponse) => ({
@@ -231,6 +233,7 @@ export const POST = async (req: Request) => {
       address: memberPayload.address,
       points: 0,
       isActive: true,
+      createdBy: context.username,
       updatedBy: context.username,
     },
     select: memberSelect,
