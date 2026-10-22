@@ -402,7 +402,7 @@ const MembersPage = () => {
                 <TableHead>Member</TableHead>
                 <TableHead className="hidden md:table-cell">Kontak</TableHead>
                 <TableHead className="text-center">Poin</TableHead>
-                <TableHead className="hidden lg:table-cell">Terdaftar</TableHead>
+                <TableHead className="hidden lg:table-cell">Dibuat Pada</TableHead>
                 <TableHead className="hidden lg:table-cell">Dibuat Oleh</TableHead>
                 <TableHead className="text-center">Aksi</TableHead>
               </TableRow>
@@ -430,6 +430,9 @@ const MembersPage = () => {
                       {member.phone}
                     </div>
                     <div className="mt-1 text-xs text-gray-500 lg:hidden">
+                      Dibuat pada {format(new Date(member.createdAt), "dd MMM yyyy, HH:mm")}
+                    </div>
+                    <div className="text-xs text-gray-500 lg:hidden">
                       Dibuat oleh {member.createdBy || "-"}
                     </div>
                   </TableCell>
@@ -443,7 +446,7 @@ const MembersPage = () => {
                     {member.points.toLocaleString("id-ID")}
                   </TableCell>
                   <TableCell className="hidden align-top lg:table-cell">
-                    {format(new Date(member.createdAt), "dd MMM yyyy")}
+                    {format(new Date(member.createdAt), "dd MMM yyyy, HH:mm")}
                   </TableCell>
                   <TableCell className="hidden align-top lg:table-cell">
                     {member.createdBy || "-"}
