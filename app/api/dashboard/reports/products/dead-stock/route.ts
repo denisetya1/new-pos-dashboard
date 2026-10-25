@@ -115,6 +115,7 @@ export const GET = async (req: NextRequest) => {
         AND (sales.last_sold_at IS NULL OR sales.last_sold_at < ${cutoffDate})
         ${searchFilter}
       ORDER BY
+        ps.quantity DESC,
         sales.last_sold_at IS NULL DESC,
         sales.last_sold_at ASC,
         p.name ASC

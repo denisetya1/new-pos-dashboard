@@ -110,6 +110,7 @@ const DeadStockReportPage = () => {
           {cutoffDate
             ? `, dihitung dari ${format(new Date(cutoffDate), "dd MMM yyyy")}.`
             : "."}
+          {" "}Diurutkan dari jumlah stok terbesar.
         </p>
       </div>
 
@@ -161,7 +162,7 @@ const DeadStockReportPage = () => {
                 <TableHead className="hidden md:table-cell">
                   Kategori / Brand
                 </TableHead>
-                <TableHead className="text-center">Stok</TableHead>
+                <TableHead className="text-center" aria-sort="descending">Stok</TableHead>
                 <TableHead className="hidden lg:table-cell">
                   Terakhir Terjual
                 </TableHead>
