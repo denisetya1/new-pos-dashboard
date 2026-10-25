@@ -31,6 +31,7 @@ export const menuConfig: NavItem[] = [
         href: "/products/search-multi-outlets",
       },
       { label: "Daftar Produk & Stok", href: "/products/stocks" },
+      { label: "Product Bundling", href: "/products/bundles" },
       { label: "Diskon", href: "/products/discounts" },
       //   { label: "Cetak harga", href: "/products/print" },
     ],

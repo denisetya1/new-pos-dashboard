@@ -127,6 +127,7 @@ model Store {
   suppliers     Suplier[]
   members       Member[]
   loyaltyPointTransactions LoyaltyPointTransaction[]
+  productBundles ProductBundle[]
 
   @@map("stores")
 }
@@ -186,11 +187,48 @@ model Product {
   category             Category              @relation(fields: [categoryId], references: [id])
   store                Store                 @relation(fields: [storeId], references: [id])
   StockRequestProducts StockRequestProduct[]
+  bundleDefinition     ProductBundle?      @relation("BundleProduct")
+  bundleItems          ProductBundleItem[] @relation("BundleItemProduct")
 
   @@index([brandId], map: "products_brand_id_fkey")
   @@index([categoryId], map: "products_category_id_fkey")
   @@index([storeId], map: "products_store_id_fkey")
   @@map("products")
+}
+
+model ProductBundle {
+  id        BigInt    @id @default(autoincrement())
+  storeId   BigInt    @map("store_id")
+  productId BigInt    @unique @map("product_id")
+  sellPrice Decimal   @map("sell_price") @db.Decimal(12, 2)
+  isActive  Boolean   @default(true) @map("is_active")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+  updatedBy String?   @default("") @map("updated_by")
+  product   Product   @relation("BundleProduct", fields: [productId], references: [id])
+  store     Store     @relation(fields: [storeId], references: [id])
+  items     ProductBundleItem[]
+
+  @@index([storeId], map: "product_bundles_store_id_idx")
+  @@map("product_bundles")
+}
+
+model ProductBundleItem {
+  id              BigInt        @id @default(autoincrement())
+  productBundleId BigInt        @map("product_bundle_id")
+  productId       BigInt        @map("product_id")
+  quantity        Int
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime?     @updatedAt @map("updated_at")
+  deletedAt       DateTime?     @map("deleted_at")
+  updatedBy       String?       @default("") @map("updated_by")
+  bundle          ProductBundle @relation(fields: [productBundleId], references: [id])
+  product         Product       @relation("BundleItemProduct", fields: [productId], references: [id])
+
+  @@unique([productBundleId, productId], map: "product_bundle_items_bundle_product_key")
+  @@index([productId], map: "product_bundle_items_product_id_idx")
+  @@map("product_bundle_items")
 }
 
 model Outlet {
