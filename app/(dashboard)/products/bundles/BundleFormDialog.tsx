@@ -326,7 +326,9 @@ export default function BundleFormDialog({
                         <div key={product.id} className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between">
                           <div className="min-w-0">
                             <p className="font-medium text-gray-950">{product.name}</p>
-                            <p className="text-sm text-gray-600">{formatCurrency(product.currentPrice)} · stok outlet {product.currentStock}</p>
+                            <p className="text-sm text-gray-600">
+                              Harga normal {formatCurrency(product.currentPrice)}/unit · stok outlet {product.currentStock}
+                            </p>
                           </div>
                           <Button type="button" variant="outline" className="min-h-11 shrink-0" disabled={selected} onClick={() => addProduct(product)}>
                             <Plus /> {selected ? "Sudah dipilih" : "Tambahkan"}
@@ -351,7 +353,12 @@ export default function BundleFormDialog({
                         <div key={field.id} className="grid gap-3 rounded-lg border p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                           <div className="min-w-0">
                             <p className="font-medium text-gray-950">{product?.name || "Produk"}</p>
-                            <p className="text-sm text-gray-600">{formatCurrency(product?.currentPrice || 0)} per unit · stok outlet {product?.currentStock || 0}</p>
+                            <p className="text-sm text-gray-600">
+                              Harga normal {formatCurrency(product?.currentPrice || 0)}/unit
+                            </p>
+                            <p className="mt-1 text-xs text-gray-600">
+                              Subtotal {formatCurrency((product?.currentPrice || 0) * quantity)} · stok outlet {product?.currentStock || 0}
+                            </p>
                           </div>
                           <div className="flex items-center gap-2">
                             <Button type="button" variant="outline" size="icon" className="size-11" aria-label={`Kurangi jumlah ${product?.name || "produk"}`} disabled={quantity <= 1} onClick={() => update(index, { productId: field.productId, quantity: quantity - 1 })}><Minus /></Button>
@@ -405,7 +412,8 @@ export default function BundleFormDialog({
                     )}
                   />
                   <div className="rounded-lg border bg-gray-50 p-4 text-sm">
-                    <div className="flex justify-between gap-4"><span className="text-gray-600">Harga normal</span><strong>{formatCurrency(regularPrice)}</strong></div>
+                    <div className="flex justify-between gap-4"><span className="text-gray-600">Total harga normal</span><strong>{formatCurrency(regularPrice)}</strong></div>
+                    <p className="mt-1 text-xs text-gray-600">Harga satuan × jumlah seluruh isi bundle.</p>
                     <div className="mt-2 flex justify-between gap-4"><span className="text-gray-600">Hemat</span><strong className="text-emerald-700">{formatCurrency(savings)}</strong></div>
                   </div>
                 </div>
