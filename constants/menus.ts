@@ -2,6 +2,7 @@ import { NavItem } from "@/app/(dashboard)/components/Navigation";
 import {
   Database,
   Home,
+  Lightbulb,
   ScrollText,
   ScanBarcode,
   SlidersHorizontal,
@@ -15,6 +16,11 @@ export const menuConfig: NavItem[] = [
     label: "Home",
     icon: Home,
     href: "/home",
+  },
+  {
+    label: "AI Suggestion",
+    icon: Lightbulb,
+    href: "/ai-suggestions",
   },
   {
     label: "Manjemen Produk",
