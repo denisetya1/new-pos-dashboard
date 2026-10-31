@@ -31,6 +31,11 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   MemberPayload,
   useAdjustMemberPoints,
   useCreateMember,
@@ -53,6 +58,7 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import queryString from "query-string";
 import { FormEvent, useEffect, useState } from "react";
+import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 import { toast } from "react-toastify";
 
 type MemberItem = {
@@ -145,17 +151,28 @@ const PhoneNumber = ({
     >
       {isVisible ? member.phone : maskPhoneNumber(member.phone)}
     </span>
-    <Button
-      type="button"
-      variant="ghost"
-      size="sm"
-      className="min-h-11 px-2 text-xs"
-      onClick={onToggle}
-      aria-pressed={isVisible}
-      aria-label={`${isVisible ? "Sembunyikan" : "Tampilkan"} nomor telepon ${member.name}`}
-    >
-      {isVisible ? "Sembunyikan" : "Tampilkan"}
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-11 w-11"
+          onClick={onToggle}
+          aria-pressed={isVisible}
+          aria-label={`${isVisible ? "Sembunyikan" : "Tampilkan"} nomor telepon ${member.name}`}
+        >
+          {isVisible ? (
+            <FaRegEyeSlash className="h-4 w-4" aria-hidden="true" />
+          ) : (
+            <FaRegEye className="h-4 w-4" aria-hidden="true" />
+          )}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="top">
+        {isVisible ? "Sembunyikan nomor telepon" : "Tampilkan nomor telepon"}
+      </TooltipContent>
+    </Tooltip>
   </div>
 );
 
