@@ -111,6 +111,54 @@ const getGenderLabel = (gender: MemberItem["gender"]) => {
   return null;
 };
 
+const maskPhoneNumber = (phone: string) => {
+  if (phone.length <= 4) return "•".repeat(Math.max(phone.length, 4));
+
+  const visiblePrefixLength = Math.min(4, phone.length - 2);
+  const visiblePrefix = phone.slice(0, visiblePrefixLength);
+  const visibleSuffix = phone.slice(-2);
+  const maskedLength = Math.max(
+    phone.length - visiblePrefix.length - visibleSuffix.length,
+    4,
+  );
+
+  return `${visiblePrefix}${"•".repeat(maskedLength)}${visibleSuffix}`;
+};
+
+type PhoneNumberProps = {
+  member: MemberItem;
+  isVisible: boolean;
+  onToggle: () => void;
+  className?: string;
+};
+
+const PhoneNumber = ({
+  member,
+  isVisible,
+  onToggle,
+  className,
+}: PhoneNumberProps) => (
+  <div className={`flex flex-wrap items-center gap-1 ${className || ""}`}>
+    <span
+      className="font-mono tabular-nums"
+      aria-label={isVisible ? member.phone : "Nomor telepon disembunyikan"}
+    >
+      {isVisible ? member.phone : maskPhoneNumber(member.phone)}
+    </span>
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      className="min-h-11 px-2 text-xs"
+      onClick={onToggle}
+      aria-pressed={isVisible}
+      aria-label={`${isVisible ? "Sembunyikan" : "Tampilkan"} nomor telepon ${member.name}`}
+    >
+      {isVisible ? "Sembunyikan" : "Tampilkan"}
+    </Button>
+  </div>
+);
+
 const MembersPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -128,6 +176,9 @@ const MembersPage = () => {
   const [pointType, setPointType] = useState<"ADD" | "DEDUCT">("ADD");
   const [pointAmount, setPointAmount] = useState("");
   const [pointReason, setPointReason] = useState("");
+  const [visiblePhoneIds, setVisiblePhoneIds] = useState<Set<string>>(
+    () => new Set(),
+  );
 
   const qs = queryString.stringify({ ...params, limit });
   const {
@@ -165,6 +216,24 @@ const MembersPage = () => {
       });
     }
   }, [isError]);
+
+  useEffect(() => {
+    setVisiblePhoneIds(new Set());
+  }, [qs]);
+
+  const togglePhoneVisibility = (memberId: string) => {
+    setVisiblePhoneIds((currentIds) => {
+      const nextIds = new Set(currentIds);
+
+      if (nextIds.has(memberId)) {
+        nextIds.delete(memberId);
+      } else {
+        nextIds.add(memberId);
+      }
+
+      return nextIds;
+    });
+  };
 
   const onSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -408,11 +477,14 @@ const MembersPage = () => {
               </TableRow>
             </TableHeader>
             <TableBody className="divide-y align-top">
-              {members.map((member, index) => (
-                <TableRow
-                  key={member.id}
-                  className="border-b odd:bg-white even:bg-gray-50 dark:border-gray-700 odd:dark:bg-gray-900 even:dark:bg-gray-800"
-                >
+              {members.map((member, index) => {
+                const isPhoneVisible = visiblePhoneIds.has(member.id);
+
+                return (
+                  <TableRow
+                    key={member.id}
+                    className="border-b odd:bg-white even:bg-gray-50 dark:border-gray-700 odd:dark:bg-gray-900 even:dark:bg-gray-800"
+                  >
                   <TableCell className="w-12 text-center align-top">
                     {index + 1 + (currentPage - 1) * limit}
                   </TableCell>
@@ -426,9 +498,12 @@ const MembersPage = () => {
                         {getGenderLabel(member.gender)}
                       </div>
                     )}
-                    <div className="mt-1 text-xs text-gray-500 md:hidden">
-                      {member.phone}
-                    </div>
+                    <PhoneNumber
+                      member={member}
+                      isVisible={isPhoneVisible}
+                      onToggle={() => togglePhoneVisibility(member.id)}
+                      className="mt-1 text-xs text-gray-500 md:hidden"
+                    />
                     <div className="mt-1 text-xs text-gray-500 lg:hidden">
                       Dibuat pada {format(new Date(member.createdAt), "dd MMM yyyy, HH:mm")}
                     </div>
@@ -437,7 +512,11 @@ const MembersPage = () => {
                     </div>
                   </TableCell>
                   <TableCell className="hidden align-top md:table-cell">
-                    <div>{member.phone}</div>
+                    <PhoneNumber
+                      member={member}
+                      isVisible={isPhoneVisible}
+                      onToggle={() => togglePhoneVisibility(member.id)}
+                    />
                     <div className="text-xs text-gray-400">
                       {member.email || "Tidak ada email"}
                     </div>
@@ -489,8 +568,9 @@ const MembersPage = () => {
                       </Button>
                     </div>
                   </TableCell>
-                </TableRow>
-              ))}
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
